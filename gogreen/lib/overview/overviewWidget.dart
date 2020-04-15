@@ -30,7 +30,7 @@ class OverviewWidgetState extends State<OverviewWidget> {
       return storedPersonalGoal;
     });
     _monthlyEmission = _prefs.then((SharedPreferences prefs) {
-      prefs.setDouble("monthlyEmission", 123.0).then((bool success) {
+      prefs.setDouble("monthlyEmission", 0.0).then((bool success) {
         print(success);
       });
 
@@ -146,7 +146,24 @@ class OverviewWidgetState extends State<OverviewWidget> {
                       MaterialPageRoute(
                         builder: (context) => AddReceiptWidget(),
                       ),
-                    );
+                    ).then((amountMap) {
+                      Map<String, double> _amountMap = amountMap;
+                      double addedEmissions = _amountMap.values
+                          .reduce((value, element) => value + element);
+                      setState(() {
+                        _monthlyEmission =
+                            _prefs.then((SharedPreferences prefs) {
+                          double storedMonthlyEmission =
+                              (prefs.getDouble('monthlyEmission') ?? 0.0);
+
+                          prefs
+                              .setDouble('monthlyEmission',
+                                  addedEmissions + storedMonthlyEmission)
+                              .then((success) {});
+                          return addedEmissions + storedMonthlyEmission;
+                        });
+                      });
+                    });
                   },
                 )
               ],
