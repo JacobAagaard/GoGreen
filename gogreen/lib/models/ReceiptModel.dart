@@ -23,11 +23,12 @@ class Receipt {
     carbonEmission: json["carbonEmission"],
   );
 
-  Map<String, dynamic> toMap() => {
+  Map<String, dynamic> toMap() {
+    return {
     "timestamp": Timestamp.fromDateTime(timestamp),
     "items": List<dynamic>.from(items.map((x) => x.toMap())),
     "carbonEmission": carbonEmission,
-  };
+  };}
 }
 
 class Item {
@@ -44,7 +45,7 @@ class Item {
   String toJson() => json.encode(toMap());
 
   factory Item.fromMap(Map<String, dynamic> json) => Item(
-    foodType: FoodType.values.firstWhere((e) => e.toString() == 'FoodType.' + json["foodType"]),
+    foodType: FoodType.values.firstWhere((e) => e.toString() == json["foodType"], orElse: () => null),
     quantity: json["quantity"],
   );
 

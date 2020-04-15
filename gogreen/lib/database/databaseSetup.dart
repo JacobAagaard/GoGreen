@@ -7,8 +7,6 @@ import 'package:path/path.dart';
 
 class AppDatabase{
 
-  final String dbName = "goGreen.db";
-
   static final AppDatabase _singleton = AppDatabase._();
 
   static AppDatabase get instance => _singleton;
@@ -38,7 +36,7 @@ class AppDatabase{
     // Get a platform-specific directory where persistent app data can be stored
     final appDocumentDir = await getApplicationDocumentsDirectory();
     // Path with the form: /platform-specific-directory/demo.db
-    final dbPath = join(appDocumentDir.path, dbName);
+    final dbPath = join(appDocumentDir.path, "goGreenDB.db");
 
     final database = await databaseFactoryIo.openDatabase(dbPath);
 

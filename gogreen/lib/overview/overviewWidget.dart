@@ -4,9 +4,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:gogreen/addReceipt/addReceiptWidget.dart';
-import 'package:gogreen/database/receiptDAO.dart';
-import 'package:gogreen/models/FoodType.dart';
-import 'package:gogreen/models/ReceiptModel.dart';
 import 'package:gogreen/overview/emissionOverviewGauge.dart';
 import 'package:gogreen/settings/settingsWidget.dart';
 import 'package:intl/intl.dart';
@@ -21,7 +18,6 @@ class OverviewWidgetState extends State<OverviewWidget> {
   Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   Future<double> _personalGoal;
   Future<double> _monthlyEmission;
-  ReceiptDao _receiptDao = ReceiptDao();
 
   @override
   void initState() {
@@ -87,26 +83,6 @@ class OverviewWidgetState extends State<OverviewWidget> {
         padding: EdgeInsets.all(padding),
         child: Column(
           children: <Widget>[
-            // TEST DB
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                RaisedButton(
-                    child: Text(
-                      "TEST INSERT",
-                      style: TextStyle(color: Colors.green),
-                    ),
-                    onPressed: _insertReceiptTest()),
-                RaisedButton(
-                    child: Text(
-                      "SHOW DB",
-                      style: TextStyle(color: Colors.green),
-                    ),
-                    onPressed: _getReceiptTest())
-              ],
-            ),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -179,29 +155,6 @@ class OverviewWidgetState extends State<OverviewWidget> {
         ),
       ),
     );
-  }
-
-  _insertReceiptTest() {
-    Receipt receipt = new Receipt(
-        timestamp: DateTime.now(),
-        carbonEmission: 100,
-        items: [
-          new Item(
-              foodType: FoodType.beef,
-              quantity: 1000)
-        ]
-    );
-    _receiptDao.insertReceipt(receipt);
-  }
-
-  _getReceiptTest() async {
-     List<Receipt> receipts = await _receiptDao.getAllReceipts();
-     final snackBar = SnackBar(content: Text(receipts.toString()));
-
-  // Find the Scaffold in the widget tree and use it to show a SnackBar.
-    Scaffold.of(context).showSnackBar(snackBar);
-
-
   }
 }
 
