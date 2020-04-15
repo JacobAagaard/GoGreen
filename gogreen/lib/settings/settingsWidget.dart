@@ -1,85 +1,116 @@
+// Copyright 2017 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// ignore_for_file: public_member_api_docs
+
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:gogreen/emissionData/emissionDataService.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsWidget extends StatefulWidget {
-  const SettingsWidget({Key key}) : super(key: key);
+  SettingsWidget({Key key}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _SettingsWidgetState();
+  SettingWidgetState createState() => SettingWidgetState();
 }
 
-class _SettingsWidgetState extends State<SettingsWidget> {
-  static final edService = new EmissionDataService();
-  double _personalGoal = edService.getPersonalGoal();
+class SettingWidgetState extends State<SettingsWidget> {
+  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  Future<double> _personalGoal;
+  static String _personalGoalInput;
+  var _textController = TextEditingController(text: _personalGoalInput);
 
-  void setGoal(double value) {
+  Future<void> _setGoal() async {
+    final SharedPreferences prefs = await _prefs;
+    final personalGoal = double.parse(_personalGoalInput);
+
     setState(() {
-      _personalGoal = value;
+      _personalGoal =
+          prefs.setDouble("personalGoal", personalGoal).then((bool success) {
+        return personalGoal;
+      });
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _personalGoal = _prefs.then((SharedPreferences prefs) {
+      return (prefs.getDouble('personalGoal') ?? 0.0);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController _c;
-    String helperText = "Average is 580kg";
-    double amount = 0;
-
     return Scaffold(
       appBar: AppBar(
         title: Text("Choose your goal"),
       ),
-      body: Container(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                new Expanded(
-                  child: TextField(
-                    // autofocus: true,
-                    controller: _c,
-                    decoration: InputDecoration(
-                      labelText: "Enter personal goal",
-                      helperText: helperText,
-                    ),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      amount = double.parse(value);
-                      setState(() {
-                        _personalGoal = amount;
-                      });
-                    },
-                  ),
-                ),
-                Text("kg"),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Builder(
-                  builder: (rowContext) => Center(
-                    child: RaisedButton(
-                      onPressed: () {
-                        print("amount is $_personalGoal");
-                        if (_personalGoal > 0.0) {
-                          edService.setPersonalGoal(_personalGoal);
-                          Navigator.of(context).pop(_personalGoal);
-                        } else {
-                          Scaffold.of(rowContext).showSnackBar(
-                              SnackBar(content: Text("Amount invalid")));
-                        }
-                      },
-                      child: Text(
-                        "SET GOAL",
-                        style: TextStyle(color: Colors.green),
+      body: Center(
+        child: Container(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            children: <Widget>[
+              FutureBuilder<double>(
+                future: _personalGoal,
+                builder:
+                    (BuildContext context, AsyncSnapshot<double> snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.waiting:
+                      return const CircularProgressIndicator();
+                    default:
+                      if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        return Column(
+                          children: <Widget>[
+                            Text(
+                              "Personal Goal: ",
+                              style: TextStyle(fontSize: 30),
+                            ),
+                            Text(
+                              "${(snapshot.data.toInt()).toString()} kg",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 24),
+                            ),
+                          ],
+                        );
+                      }
+                  }
+                },
+              ),
+              Container(
+                padding: EdgeInsets.only(top: 20, left: 120, right: 120),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: TextField(
+                        controller: _textController,
+                        decoration: InputDecoration(
+                          labelText: "Enter goal",
+                          helperText: "Average is 580kg",
+                        ),
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) {
+                          print('new value: $value');
+                          setState(() {
+                            _personalGoalInput = (value);
+                          });
+                        },
+                        onSubmitted: (value) {
+                          _setGoal();
+                          Navigator.pop(context, value);
+                        },
                       ),
                     ),
-                  ),
-                )
-              ],
-            )
-          ],
+                    Text("kg"),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
