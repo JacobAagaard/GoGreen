@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 
-class TimelineWidget extends StatefulWidget {
-  const TimelineWidget({Key key}) : super(key: key);
+class ProgressWidget extends StatefulWidget {
+  const ProgressWidget({Key key}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _TimelineWidgetState();
+  State<StatefulWidget> createState() => _ProgressWidgetState();
 }
 
-class _TimelineWidgetState extends State<TimelineWidget> {
+class _ProgressWidgetState extends State<ProgressWidget> {
 
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Timeline"),
+        title: Text("Progress"),
       ),
       body: Container(
         padding: EdgeInsets.all(20),
