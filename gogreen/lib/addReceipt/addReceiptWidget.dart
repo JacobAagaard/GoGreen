@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gogreen/emissionData/emissionDataService.dart';
+import 'package:gogreen/receipt/Receipt.dart';
 
 class AddReceiptWidget extends StatelessWidget {
   @override
@@ -19,47 +20,22 @@ class AddReceiptWidget extends StatelessWidget {
 
   static List<Widget> _createReceiptItems(context) {
     final data = [
+      new ReceiptItemType("Beef", new Image.asset("images/beef.png"), "g"),
+      new ReceiptItemType("Milk", new Image.asset("images/milk.png"), "L"),
+      new ReceiptItemType("Bread", new Image.asset("images/bread.png"), "g"),
+      new ReceiptItemType("Cheese", new Image.asset("images/cheese.png"), "g"),
       new ReceiptItemType(
-        "Beef",
-        new Image.asset("images/beef.png"),
-      ),
-      new ReceiptItemType(
-        "Milk",
-        new Image.asset("images/milk.png"),
-      ),
-      new ReceiptItemType(
-        "Bread",
-        new Image.asset("images/bread.png"),
-      ),
-      new ReceiptItemType(
-        "Cheese",
-        new Image.asset("images/cheese.png"),
-      ),
-      new ReceiptItemType(
-        "Vegetables",
-        new Image.asset("images/vegetables.png"),
-      ),
-      new ReceiptItemType(
-        "Coffee",
-        new Image.asset("images/coffee.png"),
-      ),
-      new ReceiptItemType(
-        "Juice",
-        new Image.asset("images/juice.png"),
-      ),
-      new ReceiptItemType(
-        "Pasta",
-        new Image.asset("images/pasta.png"),
-      ),
-      new ReceiptItemType(
-        "Rice",
-        new Image.asset("images/rice.png"),
-      ),
+          "Vegetables", new Image.asset("images/vegetables.png"), "g"),
+      new ReceiptItemType("Coffee", new Image.asset("images/coffee.png"), "g"),
+      new ReceiptItemType("Juice", new Image.asset("images/juice.png"), "L"),
+      new ReceiptItemType("Pasta", new Image.asset("images/pasta.png"), "g"),
+      new ReceiptItemType("Rice", new Image.asset("images/rice.png"), "g"),
     ];
 
     return List.generate(data.length, (index) {
-      final label = data[index].label;
-      final img = data[index].img;
+      ReceiptItemType item = data[index];
+      String label = item.label;
+      Image img = item.img;
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -69,7 +45,7 @@ class AddReceiptWidget extends StatelessWidget {
               tooltip: "Enter amount of $label",
               icon: img,
               onPressed: () async {
-                final int amount = await _getAmount(context, label);
+                final int amount = await _getAmount(context, item);
                 print("entered $amount of $label");
               },
             ),
@@ -81,15 +57,14 @@ class AddReceiptWidget extends StatelessWidget {
   }
 }
 
-Future<int> _getAmount(context, label) async {
-  String suffix, helperText;
-  double emission = new EmissionDataService().getEmissionForType(label);
+Future<int> _getAmount(context, ReceiptItemType item) async {
+  String helperText;
+  String _label = item.label;
+  double emission = new EmissionDataService().getEmissionForType(_label);
 
-  if (label == "Juice" || label == "Milk") {
-    suffix = "L";
+  if (item.unit == "L") {
     helperText = "1L ~ $emission kg CO2";
   } else {
-    suffix = "g";
     helperText = "1kg ~ $emission kg CO2";
   }
 
@@ -100,7 +75,7 @@ Future<int> _getAmount(context, label) async {
     barrierDismissible: false, // user must tap button!
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text(label),
+        title: Text(_label),
         content: new Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
@@ -121,7 +96,7 @@ Future<int> _getAmount(context, label) async {
                 },
               ),
             ),
-            Text(suffix)
+            Text(item.unit)
           ],
         ),
         actions: <Widget>[
@@ -144,11 +119,4 @@ Future<int> _getAmount(context, label) async {
       );
     },
   );
-}
-
-class ReceiptItemType {
-  final String label;
-  final Image img;
-
-  ReceiptItemType(this.label, this.img);
 }
