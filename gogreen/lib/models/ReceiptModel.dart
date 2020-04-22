@@ -1,56 +1,53 @@
 import 'dart:convert';
-import 'package:gogreen/models/FoodType.dart';
 import 'package:sembast/timestamp.dart';
 
 class Receipt {
-
   // autoincrement by sembast
   int id;
 
   DateTime timestamp;
-  List<Item> items;
-  int carbonEmission;
+  List<ReceiptItem> items;
+  double totalEmission;
 
   Receipt({
     this.timestamp,
     this.items,
-    this.carbonEmission,
+    this.totalEmission,
   });
 
   factory Receipt.fromMap(Map<String, dynamic> json) => Receipt(
-    timestamp: json["timestamp"].toDateTime(),
-    items: List<Item>.from(json["items"].map((x) => Item.fromMap(x))),
-    carbonEmission: json["carbonEmission"],
-  );
+        timestamp: json["timestamp"].toDateTime(),
+        items: List<ReceiptItem>.from(
+            json["items"].map((x) => ReceiptItem.fromMap(x))),
+        totalEmission: json["totalEmission"],
+      );
 
   Map<String, dynamic> toMap() {
     return {
-    "timestamp": Timestamp.fromDateTime(timestamp),
-    "items": List<dynamic>.from(items.map((x) => x.toMap())),
-    "carbonEmission": carbonEmission,
-  };}
+      "timestamp": Timestamp.fromDateTime(timestamp),
+      "items": List<dynamic>.from(items.map((x) => x.toMap())),
+      "totalEmission": totalEmission,
+    };
+  }
 }
 
-class Item {
-  FoodType foodType;
-  int quantity;
+class ReceiptItem {
+  String foodType;
+  double quantity;
+  double emission;
 
-  Item({
-    this.foodType,
-    this.quantity,
-  });
+  ReceiptItem({this.foodType, this.quantity, this.emission});
 
-  factory Item.fromJson(String str) => Item.fromMap(json.decode(str));
+  factory ReceiptItem.fromJson(String str) =>
+      ReceiptItem.fromMap(json.decode(str));
 
   String toJson() => json.encode(toMap());
 
-  factory Item.fromMap(Map<String, dynamic> json) => Item(
-    foodType: FoodType.values.firstWhere((e) => e.toString() == json["foodType"], orElse: () => null),
-    quantity: json["quantity"],
-  );
+  factory ReceiptItem.fromMap(Map<String, dynamic> json) => ReceiptItem(
+      foodType: json["foodType"],
+      quantity: json["quantity"].toDouble(),
+      emission: json["emission"]);
 
-  Map<String, dynamic> toMap() => {
-    "foodType": foodType.toString(),
-    "quantity": quantity,
-  };
+  Map<String, dynamic> toMap() =>
+      {"foodType": foodType, "quantity": quantity, "emission": emission};
 }

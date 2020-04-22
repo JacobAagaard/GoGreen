@@ -4,6 +4,6 @@ class ReceiptItemType {
   final String label;
   final Image img;
   final String unit;
-
-  ReceiptItemType(this.label, this.img, this.unit);
+  double amount;
+  ReceiptItemType(this.label, this.img, this.unit, {this.amount = 0.0});
 }

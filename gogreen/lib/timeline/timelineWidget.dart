@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gogreen/database/receiptDAO.dart';
-import 'package:gogreen/models/FoodType.dart';
 import 'package:gogreen/models/ReceiptModel.dart';
 
 class TimelineWidget extends StatefulWidget {
@@ -15,23 +14,31 @@ class _TimelineWidgetState extends State<TimelineWidget> {
 
   @override
   Widget build(BuildContext context) {
+    List<Receipt> _receiptList = new List();
 
     _insertReceiptTest() {
       Receipt receipt = new Receipt(
           timestamp: DateTime.now(),
-          carbonEmission: 100,
-          items: [new Item(foodType: FoodType.beef, quantity: 1000)]);
+          totalEmission: 100,
+          items: [new ReceiptItem(foodType: "beef", quantity: 1000)]);
 
       _receiptDao.insertReceipt(receipt);
     }
 
     _getReceiptTest() async {
-      List<Receipt> receipts = await _receiptDao.getAllReceipts();
-      final snackBar =
-          SnackBar(content: Text(receipts[0].items[0].foodType.toString()));
-      // Find the Scaffold in the widget tree and use it to show a SnackBar.
-      Scaffold.of(context).showSnackBar(snackBar);
+      List<Receipt> updatedReceiptList = await _receiptDao.getAllReceipts();
+
+      updatedReceiptList.forEach((item)=>print(item.toMap().toString()));
+
+      setState(() => _receiptList = updatedReceiptList);
     }
+
+
+    _deleteAllTest() async {
+      await _receiptDao.deleteAll();
+      setState(() => _receiptList = new List());
+    }
+
 
     return Scaffold(
       appBar: AppBar(
@@ -53,18 +60,34 @@ class _TimelineWidgetState extends State<TimelineWidget> {
               children: [
                 RaisedButton(
                     child: Text(
-                      "TEST INSERT",
+                      "TEST\nINSERT",
                       style: TextStyle(color: Colors.green),
                     ),
                     onPressed: _insertReceiptTest),
                 RaisedButton(
                     child: Text(
-                      "SHOW DB",
+                      "SHOW\nDB",
                       style: TextStyle(color: Colors.green),
                     ),
-                    onPressed: _getReceiptTest)
+                    onPressed: _getReceiptTest),
+                RaisedButton(
+                    child: Text(
+                      "DELETE\nALL",
+                      style: TextStyle(color: Colors.green),
+                    ),
+                    onPressed: _deleteAllTest)
               ],
-            )
+            ),
+            Container(
+                height: 44,
+                child: ListView(
+                    padding: const EdgeInsets.all(8),
+                    children: _receiptList
+                        .map((value) => Container(
+                            height: 50,
+                            color: Colors.amber[600],
+                            child: Center(child: Text(value.toString()))))
+                        .toList()))
           ],
         ),
       ),
