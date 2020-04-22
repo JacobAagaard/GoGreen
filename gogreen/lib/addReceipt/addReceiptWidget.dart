@@ -42,16 +42,16 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
 
   List<Widget> _createReceiptItems(context) {
     final data = [
-      new ReceiptItemType("Beef", new Image.asset("images/beef.png"), "g"),
-      new ReceiptItemType("Milk", new Image.asset("images/milk.png"), "L"),
-      new ReceiptItemType("Bread", new Image.asset("images/bread.png"), "g"),
-      new ReceiptItemType("Cheese", new Image.asset("images/cheese.png"), "g"),
+      new ReceiptItemType("Beef", new Image.asset("images/Beef.png"), "g"),
+      new ReceiptItemType("Milk", new Image.asset("images/Milk.png"), "L"),
+      new ReceiptItemType("Bread", new Image.asset("images/Bread.png"), "g"),
+      new ReceiptItemType("Cheese", new Image.asset("images/Cheese.png"), "g"),
       new ReceiptItemType(
-          "Vegetables", new Image.asset("images/vegetables.png"), "kg"),
-      new ReceiptItemType("Coffee", new Image.asset("images/coffee.png"), "g"),
-      new ReceiptItemType("Juice", new Image.asset("images/juice.png"), "L"),
-      new ReceiptItemType("Pasta", new Image.asset("images/pasta.png"), "kg"),
-      new ReceiptItemType("Rice", new Image.asset("images/rice.png"), "kg"),
+          "Vegetables", new Image.asset("images/Vegetables.png"), "kg"),
+      new ReceiptItemType("Coffee", new Image.asset("images/Coffee.png"), "g"),
+      new ReceiptItemType("Juice", new Image.asset("images/Juice.png"), "L"),
+      new ReceiptItemType("Pasta", new Image.asset("images/Pasta.png"), "kg"),
+      new ReceiptItemType("Rice", new Image.asset("images/Rice.png"), "kg"),
     ];
 
     return List.generate(data.length, (index) {
@@ -83,6 +83,7 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
                   onPressed: () async {
                     // Get the amount from the dialog, account for the unit by dividing with a factor
                     final double amount = await _getAmount(context, item);
+                    if (amount == null) return;
                     final double _emission = (amount * emission) / factor;
                     setState(() {
                       _amountMap.update(
@@ -122,9 +123,9 @@ Future<double> _getAmount(context, ReceiptItemType item) async {
   double emission = new EmissionDataService().getEmissionForType(_label);
 
   if (item.unit == "L") {
-    helperText = "1L ~ $emission kg CO2";
+    helperText = "1L ~ $emission kg CO₂";
   } else {
-    helperText = "1kg ~ $emission kg CO2";
+    helperText = "1kg ~ $emission kg CO₂";
   }
 
   double amount = 0;

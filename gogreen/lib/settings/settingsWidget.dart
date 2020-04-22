@@ -38,7 +38,7 @@ class SettingWidgetState extends State<SettingsWidget> {
   void initState() {
     super.initState();
     _personalGoal = _prefs.then((SharedPreferences prefs) {
-      return (prefs.getDouble('personalGoal') ?? 0.0);
+      return prefs.getDouble('personalGoal') ?? 580.0;
     });
   }
 
@@ -64,6 +64,8 @@ class SettingWidgetState extends State<SettingsWidget> {
                       if (snapshot.hasError) {
                         return Text('Error: ${snapshot.error}');
                       } else {
+                        int goal = snapshot.data.toInt();
+                        String goalStr = goal.toString();
                         return Column(
                           children: <Widget>[
                             Text(
@@ -71,7 +73,7 @@ class SettingWidgetState extends State<SettingsWidget> {
                               style: TextStyle(fontSize: 30),
                             ),
                             Text(
-                              "${(snapshot.data.toInt()).toString()} kg",
+                              "$goalStr kg",
                               style: TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 24),
                             ),
