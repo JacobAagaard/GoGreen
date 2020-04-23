@@ -2,6 +2,8 @@
 /// chart.
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'package:gogreen/overview/compareEmissionWidget.dart';
+import 'package:gogreen/overview/overviewWidget.dart';
 import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,7 +17,7 @@ class EmissionOverviewGauge extends StatefulWidget {
   factory EmissionOverviewGauge.withSampleData(
       {double personalGoal, double monthlyEmission}) {
     final _personalGoal = personalGoal ?? 580.0;
-    final _monthlyEmission = monthlyEmission ?? 0.0;
+    final _monthlyEmission = monthlyEmission;
     return new EmissionOverviewGauge(
       createSampleData(_personalGoal, _monthlyEmission),
       // Disable animations for image tests.
@@ -65,37 +67,100 @@ class EmissionOverviewGaugeState extends State<EmissionOverviewGauge> {
   EmissionOverviewGaugeState(this._seriesList, this._createSampleData,
       {this.animate});
 
-  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  Future<double> _personalGoal;
-
-  @override
-  void initState() {
-    super.initState();
-    _personalGoal = _prefs.then((SharedPreferences prefs) {
-      var storedPersonalGoal = (prefs.getDouble('personalGoal') ?? 100.0);
-      var storedMonthlyEmissions =
-          (prefs.getDouble('monthlyEmissions') ?? 50.0);
-      _seriesList =
-          _createSampleData(storedPersonalGoal, storedMonthlyEmissions);
-      return storedPersonalGoal;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: new charts.PieChart(
-        _seriesList,
-        animate: animate,
-        // Configure the width of the pie slices to 30px. The remaining space in
-        // the chart will be left as a hole in the center. Adjust the start
-        // angle and the arc length of the pie so it resembles a gauge.
-        defaultRenderer: new charts.ArcRendererConfig(
-          arcWidth: 30,
-          startAngle: 3 / 2 * pi,
-          arcRendererDecorators: [new charts.ArcLabelDecorator()],
+    var personalGoal =
+        _seriesList.first.data.last.size + _seriesList.first.data.first.size;
+    var monthlyEmission = _seriesList.first.data.first.size;
+    return Stack(
+      children: <Widget>[
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.5,
+            vertical: MediaQuery.of(context).size.height * 0.095,
+          ),
+          child: Icon(
+            Icons.help_outline,
+            color: Colors.grey,
+          ),
         ),
-      ),
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.400,
+            vertical: MediaQuery.of(context).size.height * 0.105,
+          ),
+          child: Text(
+            "CO₂",
+            style: TextStyle(fontSize: 20.0, color: Colors.green),
+          ),
+        ),
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.355,
+            vertical: MediaQuery.of(context).size.height * 0.145,
+          ),
+          child: Text(
+            "${monthlyEmission.toInt().toString()} kg",
+            style: TextStyle(
+                fontSize: 22.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.green),
+          ),
+        ),
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.355,
+            vertical: MediaQuery.of(context).size.height * 0.152,
+          ),
+          child: Text(
+            "_______",
+            style: TextStyle(fontSize: 24.0, color: Colors.green),
+          ),
+        ),
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.355,
+            vertical: MediaQuery.of(context).size.height * 0.184,
+          ),
+          child: Text(
+            "${personalGoal.toInt().toString()} kg",
+            style: TextStyle(fontSize: 22.0, color: Colors.green),
+          ),
+        ),
+        Container(
+          child: new charts.PieChart(
+            _seriesList,
+            animate: animate,
+            // Configure the width of the pie slices to 30px. The remaining space in
+            // the chart will be left as a hole in the center. Adjust the start
+            // angle and the arc length of the pie so it resembles a gauge.
+            defaultRenderer: new charts.ArcRendererConfig(
+              arcWidth: 30,
+              startAngle: 3 / 2 * pi,
+              arcRendererDecorators: [new charts.ArcLabelDecorator()],
+            ),
+          ),
+        ),
+        GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () {
+            // Go to Settings screen
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      CompareEmissionWidget(personalGoal, monthlyEmission),
+                )).then((value) {
+              print("overview page got value: $value");
+              // setState(() {
+              //   _personalGoal = _prefs.then((SharedPreferences prefs) {
+              //     return prefs.getDouble('personalGoal');
+              //   });
+              // });
+            });
+          },
+        )
+      ],
     );
   }
 }
