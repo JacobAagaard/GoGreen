@@ -72,8 +72,9 @@ class EmissionOverviewGaugeState extends State<EmissionOverviewGauge> {
   void initState() {
     super.initState();
     _personalGoal = _prefs.then((SharedPreferences prefs) {
-      var storedPersonalGoal = (prefs.getDouble('personalGoal') ?? 0.0);
-      var storedMonthlyEmissions = (prefs.getDouble('monthlyEmissions') ?? 0.0);
+      var storedPersonalGoal = (prefs.getDouble('personalGoal') ?? 100.0);
+      var storedMonthlyEmissions =
+          (prefs.getDouble('monthlyEmissions') ?? 50.0);
       _seriesList =
           _createSampleData(storedPersonalGoal, storedMonthlyEmissions);
       return storedPersonalGoal;

@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:gogreen/database/receiptDAO.dart';
 import 'package:gogreen/models/ReceiptModel.dart';
 
-class TimelineWidget extends StatefulWidget {
-  const TimelineWidget({Key key}) : super(key: key);
+class ProgressWidget extends StatefulWidget {
+  const ProgressWidget({Key key}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _TimelineWidgetState();
+  State<StatefulWidget> createState() => _ProgressWidgetState();
 }
 
-class _TimelineWidgetState extends State<TimelineWidget> {
+class _ProgressWidgetState extends State<ProgressWidget> {
   ReceiptDao _receiptDao = ReceiptDao();
 
   @override
@@ -42,7 +42,7 @@ class _TimelineWidgetState extends State<TimelineWidget> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Timeline"),
+        title: Text("Progress"),
       ),
       body: Container(
         padding: EdgeInsets.all(20),

@@ -1,5 +1,4 @@
 class EmissionDataService {
-  double _personalGoal = 580.0;
   // Extracted mostly from https://ourworldindata.org/food-choice-vs-eating-local
   final Map<String, double> _emissions = {
     "beef": 40.35,
@@ -30,15 +29,5 @@ class EmissionDataService {
       return null;
     }
     return _emissions[type];
-  }
-
-  double getPersonalGoal() {
-    return _personalGoal;
-  }
-
-  void setPersonalGoal(double value) {
-    if (value != null && value > 0.0) {
-      _personalGoal = value;
-    }
   }
 }

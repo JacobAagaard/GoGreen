@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import "overview/overviewWidget.dart";
-import "timeline/timelineWidget.dart";
+import "progress/progressWidget.dart";
 import "tips/tipsWidget.dart";
 
 class HomeWidget extends StatefulWidget {
@@ -14,7 +14,7 @@ class _HomeState extends State<HomeWidget> {
   int _currentIndex = 0;
   final List<Widget> _children = [
     OverviewWidget(),
-    TimelineWidget(),
+    ProgressWidget(),
     TipsWidget()
   ];
 
@@ -34,7 +34,7 @@ class _HomeState extends State<HomeWidget> {
           new BottomNavigationBarItem(
               icon: Icon(Icons.visibility), title: Text('Overview')),
           new BottomNavigationBarItem(
-              icon: Icon(Icons.show_chart), title: Text('Timeline')),
+              icon: Icon(Icons.show_chart), title: Text('Progress')),
           new BottomNavigationBarItem(
               icon: Icon(Icons.lightbulb_outline), title: Text('Tips'))
         ],
