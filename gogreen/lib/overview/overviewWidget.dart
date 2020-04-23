@@ -4,6 +4,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:gogreen/addReceipt/addReceiptWidget.dart';
+import 'package:gogreen/database/receiptDAO.dart';
+import 'package:gogreen/models/ReceiptModel.dart';
 import 'package:gogreen/overview/emissionOverviewGauge.dart';
 import 'package:gogreen/settings/settingsWidget.dart';
 import 'package:intl/intl.dart';
@@ -16,9 +18,13 @@ class OverviewWidget extends StatefulWidget {
 
 class OverviewWidgetState extends State<OverviewWidget> {
   Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  ReceiptDao _receiptDao = ReceiptDao();
+
   Future<double> _personalGoal;
   Future<double> _monthlyEmission;
   Future<List<String>> _receipts;
+  List<Receipt> _monthReceiptsDB;
+
 
   @override
   void initState() {
@@ -75,6 +81,11 @@ class OverviewWidgetState extends State<OverviewWidget> {
 
       return storedReceipts;
     });
+
+    _receiptDao.getCurrentMonthReceipts().then(
+        (value)=>_monthReceiptsDB = value
+    );
+
   }
 
   @override

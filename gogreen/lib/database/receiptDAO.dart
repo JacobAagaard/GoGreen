@@ -1,5 +1,6 @@
 import 'package:sembast/sembast.dart';
 import 'package:gogreen/models/ReceiptModel.dart';
+import 'package:sembast/timestamp.dart';
 import 'databaseSetup.dart';
 
 class ReceiptDao {
@@ -37,4 +38,17 @@ class ReceiptDao {
       return receipt;
     }).toList();
   }
+
+  Future<List<Receipt>> getCurrentMonthReceipts() async {
+    final now =  DateTime.now();
+    final finder = Finder(filter: Filter.greaterThanOrEquals("timestamp", Timestamp.fromDateTime(DateTime(now.year, now.month))));
+    final recordSnapshot = await _receiptFolder.find(await _db, finder: finder);
+    return recordSnapshot.map((snapshot) {
+      Receipt receipt = Receipt.fromMap(snapshot.value);
+      receipt.id = snapshot.key;
+      return receipt;
+    }).toList();
+  }
+
+
 }
