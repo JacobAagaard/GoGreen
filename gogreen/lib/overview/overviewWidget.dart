@@ -10,6 +10,7 @@ import 'package:gogreen/overview/emissionOverviewGauge.dart';
 import 'package:gogreen/settings/settingsWidget.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class OverviewWidget extends StatefulWidget {
   @override
@@ -24,7 +25,6 @@ class OverviewWidgetState extends State<OverviewWidget> {
   Future<double> _monthlyEmission;
   Future<List<String>> _receipts;
   List<Receipt> _monthReceiptsDB;
-
 
   @override
   void initState() {
@@ -82,10 +82,9 @@ class OverviewWidgetState extends State<OverviewWidget> {
       return storedReceipts;
     });
 
-    _receiptDao.getCurrentMonthReceipts().then(
-        (value)=>_monthReceiptsDB = value
-    );
-
+    _receiptDao
+        .getCurrentMonthReceipts()
+        .then((value) => _monthReceiptsDB = value);
   }
 
   @override
@@ -126,7 +125,6 @@ class OverviewWidgetState extends State<OverviewWidget> {
       ),
       body: Container(
         color: Colors.grey.shade100,
-        // padding: EdgeInsets.all(padding),
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
@@ -168,12 +166,18 @@ class OverviewWidgetState extends State<OverviewWidget> {
                             if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
                             } else {
-                              return Center(
-                                child: EmissionOverviewGauge.withSampleData(
-                                  personalGoal: snapshot.data.goal,
-                                  monthlyEmission: snapshot.data.emission,
-                                ),
-                              );
+                              if (snapshot.hasData &&
+                                  snapshot.data.emission != null) {
+                                print(snapshot.data.emission);
+                                return Center(
+                                  child: EmissionOverviewGauge.withSampleData(
+                                    personalGoal: snapshot.data.goal,
+                                    monthlyEmission: snapshot.data.emission,
+                                  ),
+                                );
+                              } else {
+                                return Container();
+                              }
                             }
                         }
                       },
@@ -181,112 +185,117 @@ class OverviewWidgetState extends State<OverviewWidget> {
                   ),
                 ],
               ),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
+              new Stack(
+                children: <Widget>[
+                  Container(
+                    height: 102,
+                    margin: EdgeInsets.only(top: 20.0),
+                    child: SvgPicture.asset("images/wave.svg"),
                   ),
-                  gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Colors.green.shade500, Colors.green.shade300],
-                      stops: [0.0, 0.7]),
-                ),
-                padding: EdgeInsets.only(top: 12.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Container(
-                      child: RaisedButton(
-                        splashColor: Colors.green,
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: new BorderRadius.circular(18.0),
-                          side: BorderSide(color: Colors.white),
-                        ),
-                        child: Text(
-                          "ADD NEW RECEIPT",
-                          style: TextStyle(color: Colors.green),
-                        ),
-                        onPressed: () {
-                          // Go to Add receipt screen
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AddReceiptWidget(),
+                  Container(
+                    margin: EdgeInsets.only(top: 60.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Container(
+                          child: RaisedButton(
+                            splashColor: Colors.green,
+                            color: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: new BorderRadius.circular(18.0),
+                              side: BorderSide(color: Colors.white),
                             ),
-                          ).then((amountMap) {
-                            Map<String, double> _amountMap = amountMap;
-                            if (amountMap != null) {
-                              _amountMap.remove("test");
-                              double addedEmissions = _amountMap.values
-                                  .reduce((value, element) => value + element);
-                              String addedReceiptItems = _amountMap.keys.reduce(
-                                  (value, element) => value + "|" + element);
-                              print("addedReceiptItems: $addedReceiptItems");
-                              setState(() {
-                                _monthlyEmission =
-                                    _prefs.then((SharedPreferences prefs) {
-                                  double storedMonthlyEmission =
-                                      (prefs.getDouble('monthlyEmission') ??
-                                          0.0);
+                            child: Text(
+                              "ADD NEW RECEIPT",
+                              style: TextStyle(color: Colors.green),
+                            ),
+                            onPressed: () {
+                              // Go to Add receipt screen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AddReceiptWidget(),
+                                ),
+                              ).then((amountMap) {
+                                Map<String, double> _amountMap = amountMap;
+                                if (amountMap != null) {
+                                  _amountMap.remove("test");
+                                  double addedEmissions = _amountMap.values
+                                      .reduce(
+                                          (value, element) => value + element);
+                                  String addedReceiptItems = _amountMap.keys
+                                      .reduce((value, element) =>
+                                          value + "|" + element);
+                                  print(
+                                      "addedReceiptItems: $addedReceiptItems");
+                                  setState(() {
+                                    _monthlyEmission =
+                                        _prefs.then((SharedPreferences prefs) {
+                                      double storedMonthlyEmission =
+                                          (prefs.getDouble('monthlyEmission'));
 
-                                  prefs
-                                      .setDouble(
-                                          'monthlyEmission',
-                                          addedEmissions +
-                                              storedMonthlyEmission)
-                                      .then((success) {});
-                                  return addedEmissions + storedMonthlyEmission;
-                                });
+                                      prefs
+                                          .setDouble(
+                                              'monthlyEmission',
+                                              addedEmissions +
+                                                  storedMonthlyEmission)
+                                          .then((success) {
+                                        print(success
+                                            ? "saved new emissions"
+                                            : "failed saving new emissions");
+                                      });
+                                      return addedEmissions +
+                                          storedMonthlyEmission;
+                                    });
 
-                                _receipts =
-                                    _prefs.then((SharedPreferences prefs) {
-                                  List<String> storedReceipts =
-                                      prefs.getStringList("receipts");
-                                  if (storedReceipts != null) {
-                                    var reduced = storedReceipts.join("|");
-                                    print(
-                                        "Shared prefs returned receipts: $reduced");
-                                  }
+                                    _receipts =
+                                        _prefs.then((SharedPreferences prefs) {
+                                      List<String> storedReceipts =
+                                          prefs.getStringList("receipts");
+                                      if (storedReceipts != null) {
+                                        var reduced = storedReceipts.join("|");
+                                        print(
+                                            "Shared prefs returned receipts: $reduced");
+                                      }
 
-                                  DateTime receiptTime = new DateTime.now();
+                                      DateTime receiptTime = new DateTime.now();
 
-                                  List<String> value = [
-                                    receiptTime.toIso8601String(),
-                                    "|",
-                                    addedEmissions.toString(),
-                                    "|",
-                                    addedReceiptItems
-                                  ];
+                                      List<String> value = [
+                                        receiptTime.toIso8601String(),
+                                        "|",
+                                        addedEmissions.toString(),
+                                        "|",
+                                        addedReceiptItems
+                                      ];
 
-                                  // Append new receipts after a '^' if some exist already
-                                  if (storedReceipts != null) {
-                                    storedReceipts.add("^");
-                                    storedReceipts.addAll(value);
-                                    print(
-                                        "saving more receipts ${storedReceipts.join('')}");
-                                    prefs.setStringList(
-                                        "receipts", storedReceipts);
-                                    return storedReceipts;
-                                  } else {
-                                    print(
-                                        "saving new receipts ${value.join('')}");
-                                    prefs.setStringList("receipts", value);
-                                    return value;
-                                  }
-                                });
+                                      // Append new receipts after a '^' if some exist already
+                                      if (storedReceipts != null) {
+                                        storedReceipts.add("^");
+                                        storedReceipts.addAll(value);
+                                        print(
+                                            "saving more receipts ${storedReceipts.join('')}");
+                                        prefs.setStringList(
+                                            "receipts", storedReceipts);
+                                        return storedReceipts;
+                                      } else {
+                                        print(
+                                            "saving new receipts ${value.join('')}");
+                                        prefs.setStringList("receipts", value);
+                                        return value;
+                                      }
+                                    });
+                                  });
+                                } else {
+                                  print('No values returned from addReceipt');
+                                }
                               });
-                            } else {
-                              print('No values returned from addReceipt');
-                            }
-                          });
-                        },
-                      ),
-                    )
-                  ],
-                ),
+                            },
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ],
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -296,8 +305,14 @@ class OverviewWidgetState extends State<OverviewWidget> {
                       gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [Colors.green.shade300, Colors.green.shade50],
-                          stops: [0.0, 0.7]),
+                          colors: [
+                            Colors.green.shade400,
+                            Colors.green.shade100
+                          ],
+                          stops: [
+                            0.1,
+                            0.7
+                          ]),
                     ),
                     padding:
                         EdgeInsets.only(top: 10.0, left: 10.0, bottom: 20.0),
