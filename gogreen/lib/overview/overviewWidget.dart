@@ -168,7 +168,6 @@ class OverviewWidgetState extends State<OverviewWidget> {
                             } else {
                               if (snapshot.hasData &&
                                   snapshot.data.emission != null) {
-                                print(snapshot.data.emission);
                                 return Center(
                                   child: EmissionOverviewGauge.withSampleData(
                                     personalGoal: snapshot.data.goal,
