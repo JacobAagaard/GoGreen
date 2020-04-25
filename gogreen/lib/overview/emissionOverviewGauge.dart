@@ -3,9 +3,7 @@
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:gogreen/overview/compareEmissionWidget.dart';
-import 'package:gogreen/overview/overviewWidget.dart';
 import 'dart:math';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class EmissionOverviewGauge extends StatefulWidget {
   EmissionOverviewGauge(this.seriesList, {this.animate, Key key})
@@ -19,10 +17,9 @@ class EmissionOverviewGauge extends StatefulWidget {
     final _personalGoal = personalGoal ?? 580.0;
     final _monthlyEmission = monthlyEmission;
     return new EmissionOverviewGauge(
-      createSampleData(_personalGoal, _monthlyEmission),
-      // Disable animations for image tests.
-      animate: false,
-    );
+        createSampleData(_personalGoal, _monthlyEmission),
+        // Disable animations for image tests.
+        animate: false);
   }
 
   /// Create one series with sample hard coded data.
@@ -64,6 +61,7 @@ class EmissionOverviewGaugeState extends State<EmissionOverviewGauge> {
   List<charts.Series> _seriesList;
   var _createSampleData;
   bool animate;
+
   EmissionOverviewGaugeState(this._seriesList, this._createSampleData,
       {this.animate});
 
@@ -144,7 +142,7 @@ class EmissionOverviewGaugeState extends State<EmissionOverviewGauge> {
         GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () {
-            // Go to Settings screen
+            // Go to Compare screen
             Navigator.push(
                 context,
                 MaterialPageRoute(
