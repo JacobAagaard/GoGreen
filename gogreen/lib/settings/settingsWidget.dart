@@ -24,14 +24,16 @@ class SettingWidgetState extends State<SettingsWidget> {
 
   Future<void> _setGoal() async {
     final SharedPreferences prefs = await _prefs;
-    final personalGoal = double.parse(_personalGoalInput);
+    if (_personalGoalInput != null) {
+      final personalGoal = double.parse(_personalGoalInput);
 
-    setState(() {
-      _personalGoal =
-          prefs.setDouble("personalGoal", personalGoal).then((bool success) {
-        return personalGoal;
+      setState(() {
+        _personalGoal =
+            prefs.setDouble("personalGoal", personalGoal).then((bool success) {
+          return personalGoal;
+        });
       });
-    });
+    }
   }
 
   @override

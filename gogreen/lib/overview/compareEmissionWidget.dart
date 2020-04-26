@@ -30,6 +30,12 @@ class CompareEmissionWidgetState extends State<CompareEmissionWidget> {
     var nowYear = now.year;
 
     var emissionsDiff = (personalGoal - monthlyEmission).abs();
+    bool equalUsage = monthlyEmission == personalGoal;
+    bool extraUsage = monthlyEmission > personalGoal;
+    bool smallDiff = (personalGoal - monthlyEmission).abs() < 50.0;
+    if (equalUsage) {
+      emissionsDiff = monthlyEmission;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -64,12 +70,12 @@ class CompareEmissionWidgetState extends State<CompareEmissionWidget> {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 10.0, bottom: 8.0),
+              padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    "Your monthly emissions ${monthlyEmission > personalGoal ? 'surplus equals' : 'savings equal'} to:",
+                    "Your monthly emissions ${extraUsage || equalUsage ? 'surplus equals' : 'savings equal'} to:",
                     style: TextStyle(fontSize: 18),
                   ),
                 ],
@@ -82,10 +88,16 @@ class CompareEmissionWidgetState extends State<CompareEmissionWidget> {
                 children: <Widget>[
                   getComparison(emissionsDiff, maxWidth, 3.2, "watching",
                       "hours of Netflix", "images/netflix.jpg"),
-                  getComparison(emissionsDiff, maxWidth, 4.0, "driving", "km",
-                      "images/driving.jpg"),
-                  getComparison(emissionsDiff, maxWidth, 50, "planting",
-                      "tree seedlings", "images/seedling.jpg"),
+                  smallDiff
+                      ? getComparison(emissionsDiff, maxWidth, 0.75,
+                          "streaming music for", "hours", "images/spotify.jpg")
+                      : getComparison(emissionsDiff, maxWidth, 4.0, "driving",
+                          "km", "images/driving.jpg"),
+                  smallDiff
+                      ? getComparison(emissionsDiff, maxWidth, 0.0078,
+                          "charging your phone", "times", "images/charging.jpg")
+                      : getComparison(emissionsDiff, maxWidth, 50, "planting",
+                          "tree seedlings", "images/seedling.jpg"),
                 ],
               ),
             ),
