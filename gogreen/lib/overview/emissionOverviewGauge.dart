@@ -3,9 +3,7 @@
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:gogreen/overview/compareEmissionWidget.dart';
-import 'package:gogreen/overview/overviewWidget.dart';
 import 'dart:math';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class EmissionOverviewGauge extends StatefulWidget {
   EmissionOverviewGauge(this.seriesList, {this.animate, Key key})
@@ -17,12 +15,11 @@ class EmissionOverviewGauge extends StatefulWidget {
   factory EmissionOverviewGauge.withSampleData(
       {double personalGoal, double monthlyEmission}) {
     final _personalGoal = personalGoal ?? 580.0;
-    final _monthlyEmission = monthlyEmission;
+    final _monthlyEmission = monthlyEmission ?? 0.0;
     return new EmissionOverviewGauge(
-      createSampleData(_personalGoal, _monthlyEmission),
-      // Disable animations for image tests.
-      animate: false,
-    );
+        createSampleData(_personalGoal, _monthlyEmission),
+        // Disable animations for image tests.
+        animate: false);
   }
 
   /// Create one series with sample hard coded data.
@@ -35,7 +32,17 @@ class EmissionOverviewGauge extends StatefulWidget {
 
     bool extraUsage = monthlyEmission > personalGoal;
     if (extraUsage) {
-      data = [new GaugeSegment('Overuse', monthlyEmission)];
+      data = [
+        new GaugeSegment('Overuse', (monthlyEmission - personalGoal).abs()),
+        new GaugeSegment('Rest', 0.0),
+      ];
+    }
+    bool equalUsage = monthlyEmission == personalGoal;
+    if (equalUsage) {
+      data = [
+        new GaugeSegment('Overuse', monthlyEmission),
+        new GaugeSegment('Rest', 0.0),
+      ];
     }
 
     return [
@@ -43,13 +50,13 @@ class EmissionOverviewGauge extends StatefulWidget {
         id: 'Segments',
         domainFn: (GaugeSegment segment, _) => segment.segment,
         measureFn: (GaugeSegment segment, _) => segment.size,
-        colorFn: (GaugeSegment segment, _) => extraUsage
+        colorFn: (GaugeSegment segment, _) => extraUsage || equalUsage
             ? charts.MaterialPalette.purple.shadeDefault
             : segment.size == monthlyEmission
                 ? charts.MaterialPalette.green.shadeDefault
                 : charts.MaterialPalette.green.shadeDefault.lighter,
         labelAccessorFn: (GaugeSegment row, _) =>
-            '${row.segment}:\n${row.size.toInt()} kg',
+            '${row.size > 0 ? "${row.segment}:\n${row.size.toInt()} kg" : ""}',
         data: data,
       ),
     ];
@@ -64,69 +71,18 @@ class EmissionOverviewGaugeState extends State<EmissionOverviewGauge> {
   List<charts.Series> _seriesList;
   var _createSampleData;
   bool animate;
+
   EmissionOverviewGaugeState(this._seriesList, this._createSampleData,
       {this.animate});
 
   @override
   Widget build(BuildContext context) {
+    bool overuse = _seriesList.first.data.last.size == 0.0;
     var personalGoal =
         _seriesList.first.data.last.size + _seriesList.first.data.first.size;
     var monthlyEmission = _seriesList.first.data.first.size;
     return Stack(
       children: <Widget>[
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width * 0.5,
-            vertical: MediaQuery.of(context).size.height * 0.095,
-          ),
-          child: Icon(
-            Icons.help_outline,
-            color: Colors.grey,
-          ),
-        ),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width * 0.400,
-            vertical: MediaQuery.of(context).size.height * 0.105,
-          ),
-          child: Text(
-            "CO₂",
-            style: TextStyle(fontSize: 20.0, color: Colors.green),
-          ),
-        ),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width * 0.355,
-            vertical: MediaQuery.of(context).size.height * 0.145,
-          ),
-          child: Text(
-            "${monthlyEmission.toInt().toString()} kg",
-            style: TextStyle(
-                fontSize: 22.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.green),
-          ),
-        ),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width * 0.355,
-            vertical: MediaQuery.of(context).size.height * 0.152,
-          ),
-          child: Text(
-            "_______",
-            style: TextStyle(fontSize: 24.0, color: Colors.green),
-          ),
-        ),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width * 0.355,
-            vertical: MediaQuery.of(context).size.height * 0.184,
-          ),
-          child: Text(
-            "${personalGoal.toInt().toString()} kg",
-            style: TextStyle(fontSize: 22.0, color: Colors.green),
-          ),
-        ),
         Container(
           child: new charts.PieChart(
             _seriesList,
@@ -141,10 +97,69 @@ class EmissionOverviewGaugeState extends State<EmissionOverviewGauge> {
             ),
           ),
         ),
+        Container(
+          margin: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.475,
+            vertical: MediaQuery.of(context).size.height * 0.080,
+          ),
+          child: Icon(
+            Icons.help_outline,
+            color: Colors.grey,
+          ),
+        ),
+        Container(
+          margin: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.405,
+            vertical: MediaQuery.of(context).size.height * 0.095,
+          ),
+          child: Text(
+            "CO₂",
+            style: TextStyle(
+                fontSize: 20.0, color: overuse ? Colors.purple : Colors.green),
+          ),
+        ),
+        Container(
+          margin: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.355,
+            vertical: MediaQuery.of(context).size.height * 0.135,
+          ),
+          child: Text(
+            "${monthlyEmission.toInt().toString()} kg",
+            style: TextStyle(
+                fontSize: 22.0,
+                fontWeight: FontWeight.bold,
+                color: overuse ? Colors.purple : Colors.green),
+          ),
+        ),
+        Container(
+          margin: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.358,
+            vertical: MediaQuery.of(context).size.height * 0.140,
+          ),
+          child: overuse
+              ? Container()
+              : Text(
+                  "_______",
+                  style: TextStyle(fontSize: 24.0, color: Colors.green),
+                ),
+        ),
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.355,
+            vertical: MediaQuery.of(context).size.height * 0.170,
+          ),
+          child: overuse
+              ? Text("overuse",
+                  style: TextStyle(fontSize: 20.0, color: Colors.purple))
+              : Text(
+                  "${personalGoal.toInt().toString()} kg",
+                  style: TextStyle(fontSize: 22.0, color: Colors.green),
+                ),
+        ),
         GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () {
-            // Go to Settings screen
+            // Go to Compare screen
             Navigator.push(
                 context,
                 MaterialPageRoute(

@@ -31,9 +31,8 @@ class OverviewWidgetState extends State<OverviewWidget> {
     super.initState();
     _personalGoal = _prefs.then((SharedPreferences prefs) {
       double storedPersonalGoal = 0.0;
-      try {
-        storedPersonalGoal = prefs.getDouble('personalGoal');
-      } catch (e) {
+      storedPersonalGoal = prefs.getDouble('personalGoal');
+      if (storedPersonalGoal == null) {
         // Handle launching the app, if getting monthlyEmission above throws exception
         double initialGoal = 580.0;
         prefs.setDouble("personalGoal", initialGoal).then((bool success) {
@@ -48,9 +47,8 @@ class OverviewWidgetState extends State<OverviewWidget> {
 
     _monthlyEmission = _prefs.then((SharedPreferences prefs) {
       double storedMonthlyEmission = 0.0;
-      try {
-        storedMonthlyEmission = prefs.getDouble('monthlyEmission');
-      } catch (e) {
+      storedMonthlyEmission = prefs.getDouble('monthlyEmission');
+      if (storedMonthlyEmission == null) {
         // Handle launching the app, if getting monthlyEmission above throws exception
         double initialEmission = 0.0;
         prefs
@@ -67,9 +65,8 @@ class OverviewWidgetState extends State<OverviewWidget> {
 
     _receipts = _prefs.then((SharedPreferences prefs) {
       List<String> storedReceipts;
-      try {
-        storedReceipts = prefs.getStringList('receipts');
-      } catch (e) {
+      storedReceipts = prefs.getStringList('receipts');
+      if (storedReceipts == null) {
         // Handle launching the app, if getting receipts above throws exception
         List<String> initialReceipts = [];
         prefs.setStringList("receipts", initialReceipts).then((bool success) {
@@ -168,7 +165,6 @@ class OverviewWidgetState extends State<OverviewWidget> {
                             } else {
                               if (snapshot.hasData &&
                                   snapshot.data.emission != null) {
-                                print(snapshot.data.emission);
                                 return Center(
                                   child: EmissionOverviewGauge.withSampleData(
                                     personalGoal: snapshot.data.goal,
@@ -330,11 +326,12 @@ class OverviewWidgetState extends State<OverviewWidget> {
                             } else {
                               List<Widget> children = [];
 
-                              if (snapshot.hasData) {
+                              if (snapshot.hasData &&
+                                  snapshot.data.length > 0) {
                                 // Fetch the receipts from the snapshot and do a lot of ugly String / List formatting
                                 String receiptListsStr = snapshot.data.join();
                                 List<String> receiptLists =
-                                    receiptListsStr.split("^");
+                                    receiptListsStr.split("^").sublist(1);
                                 List<Widget> receiptWidgets =
                                     receiptLists.map((receiptListStr) {
                                   List<String> receiptList =
