@@ -38,19 +38,24 @@ class _ProgressWidgetState extends State<ProgressWidget> {
 
     print("process Raw Data");
     bool firstIter = true;
+    DateTime now = DateTime.now();
+    monthData = {DateTime(now.year, now.month): []};
+
+    for (var i = 1; i < 12; ++i) {
+      int month = now.month - i;
+      int year = now.year;
+      if (month <= 0) {
+        month = now.month + 12 - i;
+        year -= 1;
+      }
+      monthData[DateTime(year, month)] = [];
+    }
 
     // Divide by month
     data.forEach((Receipt receipt) {
-      DateTime tempKey = DateTime(receipt.timestamp.year, receipt.timestamp.month);
-      if (monthData != null && monthData.containsKey(tempKey)) {
-        monthData[tempKey].add(receipt);
-      } else if (monthData == null) {
-        monthData = {
-          tempKey: [receipt]
-        };
-      } else {
-        monthData[tempKey] = [receipt];
-      }
+      DateTime tempKey =
+          DateTime(receipt.timestamp.year, receipt.timestamp.month);
+      monthData[tempKey].add(receipt);
     });
 
     // calculate month emission
@@ -69,12 +74,11 @@ class _ProgressWidgetState extends State<ProgressWidget> {
 
     monthEmissionSeries = [
       new charts.Series<MonthEmission, DateTime>(
-        id: 'realEmission',
-        colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
-        domainFn: (MonthEmission item, _) => item.month,
-        measureFn: (MonthEmission item, _) => item.emission,
-        data: monthEmission,
-      )
+          id: 'realEmission',
+          colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
+          domainFn: (MonthEmission item, _) => item.month,
+          measureFn: (MonthEmission item, _) => item.emission,
+          data: monthEmission)
     ];
   }
 
@@ -104,7 +108,7 @@ class _ProgressWidgetState extends State<ProgressWidget> {
     if (monthEmissionSeries.length == 1) {
       monthEmissionSeries.add(new charts.Series<MonthEmission, DateTime>(
         id: 'modifiedEmission',
-        colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
+        colorFn: (_, __) => charts.MaterialPalette.purple.shadeDefault,
         domainFn: (MonthEmission item, _) => item.month,
         measureFn: (MonthEmission item, _) => item.emission,
         data: modifiedMonthEmission,
@@ -112,7 +116,7 @@ class _ProgressWidgetState extends State<ProgressWidget> {
     } else {
       monthEmissionSeries[1] = new charts.Series<MonthEmission, DateTime>(
         id: 'modifiedEmission',
-        colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
+        colorFn: (_, __) => charts.MaterialPalette.purple.shadeDefault,
         domainFn: (MonthEmission item, _) => item.month,
         measureFn: (MonthEmission item, _) => item.emission,
         data: modifiedMonthEmission,
@@ -122,18 +126,17 @@ class _ProgressWidgetState extends State<ProgressWidget> {
 
   void modifyData(WhatIf whatIf) {
     firstRendering = false;
-    print(whatIf == null ? "remove whafIf curve" : "add " + enumToString(whatIf) + " curve");
     switch (whatIf) {
       case WhatIf.vegetarian:
         removeFoodType(["beef", "chicken", "fish"]);
         break;
 
       case WhatIf.vegan:
+        removeFoodType(["beef", "chicken", "fish", "egg", "milk"]);
         break;
 
       default:
-        if (monthEmissionSeries.length>1) monthEmissionSeries.removeLast();
-
+        if (monthEmissionSeries.length > 1) monthEmissionSeries.removeLast();
     }
   }
 
@@ -147,8 +150,8 @@ class _ProgressWidgetState extends State<ProgressWidget> {
       String label = enumToString(whatIf);
       return ChoiceChip(
         label: Text(capitalize(label)),
-        labelStyle: TextStyle(
-            color: _chipValue == label ? Colors.black : Colors.white),
+        labelStyle:
+            TextStyle(color: _chipValue == label ? Colors.white : Colors.black),
         selected: _chipValue == label,
         onSelected: (bool selected) {
           setState(() {
@@ -156,6 +159,7 @@ class _ProgressWidgetState extends State<ProgressWidget> {
             selected ? modifyData(whatIf) : modifyData(null);
           });
         },
+        backgroundColor: Color(0xffE8E8E8),
         selectedColor: Theme.of(context).accentColor,
       );
     }
@@ -179,14 +183,17 @@ class _ProgressWidgetState extends State<ProgressWidget> {
                     Expanded(
                         child: Container(
                             width: screenWidth,
-                            child:
-                                new StackedAreaLineChart(monthEmissionSeries, animate: firstRendering))),
-                    Text("What would if you changed what you ate?"),
+                            child: new StackedAreaLineChart(monthEmissionSeries,
+                                animate: firstRendering))),
+                    Container(
+                        padding: const EdgeInsets.only(top: 30.0, bottom: 10),
+                        child: Text("What if you changed your diet?", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500))),
                     Wrap(
                       spacing: 8.0, // gap between adjacent chips
                       runSpacing: 4.0, // gap between lines
                       children: [
                         whatIfChip(WhatIf.vegetarian),
+                        whatIfChip(WhatIf.vegan),
                       ],
                     ),
                   ];
@@ -240,4 +247,4 @@ class MonthEmission {
   }
 }
 
-enum WhatIf { vegetarian, vegan, none }
+enum WhatIf { vegetarian, vegan}
