@@ -19,7 +19,8 @@ class StackedAreaLineChart extends StatelessWidget {
     return new charts.TimeSeriesChart(seriesList,
         behaviors: [
           LinePointHighlighter(symbolRenderer: CustomCircleSymbolRenderer()),
-          new charts.ChartTitle('CO2 kg',titleStyleSpec: TextStyleSpec(fontSize: 10),
+          new charts.ChartTitle('CO₂ kg',
+              titleStyleSpec: TextStyleSpec(fontSize: 10),
               behaviorPosition: charts.BehaviorPosition.top,
               titleOutsideJustification: charts.OutsideJustification.start,
               // Set a larger inner padding than the default (10) to avoid

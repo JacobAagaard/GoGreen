@@ -14,13 +14,26 @@ class AddReceiptWidget extends StatefulWidget {
 
 class AddReceiptWidgetState extends State<AddReceiptWidget> {
   Map<String, double> _amountMap = new Map();
-  Map<String, double> _emissionMap  = new Map();
+  Map<String, double> _emissionMap = new Map();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Add new receipt"),
+        actions: <Widget>[
+          Builder(
+            builder: (context) => IconButton(
+              icon: Image.asset("images/receipt-scan.png"),
+              onPressed: () {
+                // Go to Settings screen
+                Scaffold.of(context).showSnackBar(SnackBar(
+                  content: Text("Scanning receipts coming soon!"),
+                ));
+              },
+            ),
+          )
+        ],
       ),
       body: GridView.count(
         // Create a grid with 3 columns.
@@ -62,6 +75,9 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
           : Colors.purple;
       double emission = new EmissionDataService().getEmissionForType(label);
       double factor = item.unit == "g" ? 1000.0 : 1.0;
+      if (label == "eggs") {
+        factor = 20.0; // 1 egg ~ 50g
+      }
 
       return Center(
         child: Container(
@@ -101,10 +117,10 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
                 ),
               ),
               Text(capitalize(label), style: TextStyle(color: textColor)),
-              Text((_amountMap!=null && _amountMap.containsKey(label))
-                  ? "${_amountMap[label].toString()} ${item.unit}"
+              Text((_amountMap != null && _amountMap.containsKey(label))
+                  ? "${_amountMap[label].toInt().toString()} ${item.unit}"
                   : ""),
-              Text((_emissionMap!=null && _emissionMap.containsKey(label))
+              Text((_emissionMap != null && _emissionMap.containsKey(label))
                   ? "${_emissionMap[label].toInt().toString()}kg CO₂ "
                   : ""),
             ],
@@ -134,9 +150,6 @@ Future<Receipt> saveReceiptToDB(Map<String, double> amountMap, Map<String, doubl
   if (result != null) return receipt;
   else return null;
 }
-
-
-
 
 Future<double> _getAmount(context, ReceiptItemType item) async {
   String helperText;
