@@ -11,6 +11,7 @@ class MyApp extends StatelessWidget {
       title: 'Go Green',
       theme: ThemeData(
         primarySwatch: Colors.green,
+        accentColor: Colors.purple,
       ),
       home: HomeWidget(),
     );
