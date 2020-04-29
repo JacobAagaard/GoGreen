@@ -94,8 +94,10 @@ class _TipsWidgetState extends State<TipsWidget> {
                         new EmissionDataService();
 
                     children.add(Center(
-                      child:
-                          Text("Here are some tips to decrease your footprint", style: TextStyle(fontWeight: FontWeight.bold),),
+                      child: Text(
+                        "Here are some tips to decrease your footprint",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ));
 
                     children.addAll(List.generate(
@@ -196,9 +198,7 @@ class _TipsWidgetState extends State<TipsWidget> {
                             Container(
                               child: Text(
                                 "Exchange $foodType with $suggestedFoodType and save $savings% CO₂",
-                                style: TextStyle(
-                                  fontStyle: FontStyle.italic
-                                ),
+                                style: TextStyle(fontStyle: FontStyle.italic),
                               ),
                             ),
                           ],
@@ -208,7 +208,7 @@ class _TipsWidgetState extends State<TipsWidget> {
                     ));
                   } else if (snapshot.hasData && snapshot.data.length == 0) {
                     children = <Widget>[
-                      Text("Add a receipt to see suggestions")
+                      Center(child: Text("Add a receipt to see tips"))
                     ];
                   } else if (snapshot.hasError) {
                     children = <Widget>[
