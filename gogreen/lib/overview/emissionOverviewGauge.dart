@@ -6,25 +6,23 @@ import 'package:gogreen/overview/compareEmissionWidget.dart';
 import 'dart:math';
 
 class EmissionOverviewGauge extends StatefulWidget {
-  EmissionOverviewGauge(this.seriesList, {this.animate, Key key})
-      : super(key: key);
+  EmissionOverviewGauge(this.seriesList, {this.animate, Key key, this.equivalent}) : super(key: key);
   final List<charts.Series> seriesList;
   final bool animate;
+  final bool equivalent;
 
   /// Creates a [PieChart] with sample data and no transition.
-  factory EmissionOverviewGauge.withSampleData(
-      {double personalGoal, double monthlyEmission}) {
+  factory EmissionOverviewGauge.withSampleData({double personalGoal, double monthlyEmission, bool equivalent}) {
     final _personalGoal = personalGoal ?? 580.0;
     final _monthlyEmission = monthlyEmission ?? 0.0;
-    return new EmissionOverviewGauge(
-        createSampleData(_personalGoal, _monthlyEmission),
+    return new EmissionOverviewGauge(createSampleData(_personalGoal, _monthlyEmission),
         // Disable animations for image tests.
-        animate: false);
+        animate: false,
+        equivalent: equivalent);
   }
 
   /// Create one series with sample hard coded data.
-  static List<charts.Series<GaugeSegment, String>> createSampleData(
-      personalGoal, monthlyEmission) {
+  static List<charts.Series<GaugeSegment, String>> createSampleData(personalGoal, monthlyEmission) {
     var data = [
       new GaugeSegment('Used', monthlyEmission),
       new GaugeSegment('Rest', (personalGoal - monthlyEmission).abs()),
@@ -55,8 +53,7 @@ class EmissionOverviewGauge extends StatefulWidget {
             : segment.size == monthlyEmission
                 ? charts.MaterialPalette.green.shadeDefault
                 : charts.MaterialPalette.green.shadeDefault.lighter,
-        labelAccessorFn: (GaugeSegment row, _) =>
-            '${row.size > 0 ? "${row.segment}:\n${row.size.toInt()} kg" : ""}',
+        labelAccessorFn: (GaugeSegment row, _) => '${row.size > 0 ? "${row.segment}:\n${row.size.toInt()} kg" : ""}',
         data: data,
       ),
     ];
@@ -64,22 +61,21 @@ class EmissionOverviewGauge extends StatefulWidget {
 
   @override
   EmissionOverviewGaugeState createState() =>
-      EmissionOverviewGaugeState(seriesList, createSampleData);
+      EmissionOverviewGaugeState(seriesList, createSampleData, equivalent: equivalent);
 }
 
 class EmissionOverviewGaugeState extends State<EmissionOverviewGauge> {
   List<charts.Series> _seriesList;
   var _createSampleData;
   bool animate;
+  bool equivalent;
 
-  EmissionOverviewGaugeState(this._seriesList, this._createSampleData,
-      {this.animate});
+  EmissionOverviewGaugeState(this._seriesList, this._createSampleData, {this.animate, this.equivalent});
 
   @override
   Widget build(BuildContext context) {
     bool overuse = _seriesList.first.data.last.size == 0.0;
-    var personalGoal =
-        _seriesList.first.data.last.size + _seriesList.first.data.first.size;
+    var personalGoal = _seriesList.first.data.last.size + _seriesList.first.data.first.size;
     var monthlyEmission = _seriesList.first.data.first.size;
     return Stack(
       children: <Widget>[
@@ -97,39 +93,42 @@ class EmissionOverviewGaugeState extends State<EmissionOverviewGauge> {
             ),
           ),
         ),
-        Container(
-          margin: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width * 0.475,
-            vertical: MediaQuery.of(context).size.height * 0.080,
-          ),
-          child: Icon(
-            Icons.help_outline,
-            color: Colors.grey,
-          ),
-        ),
+        equivalent == true
+            ? Container()
+            : Container(
+                margin: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width * 0.475,
+                  vertical: MediaQuery.of(context).size.height * 0.080,
+                ),
+                child: Icon(
+                  Icons.help_outline,
+                  color: Colors.grey,
+                ),
+              ),
         Container(
           margin: EdgeInsets.symmetric(
             horizontal: MediaQuery.of(context).size.width * 0.405,
             vertical: MediaQuery.of(context).size.height * 0.095,
           ),
-          child: Text(
-            "CO₂",
-            style: TextStyle(
-                fontSize: 20.0, color: overuse ? Colors.purple : Colors.green),
-          ),
+          child: FittedBox(
+              fit: BoxFit.fitWidth,
+              child: Text(
+                "CO₂",
+                style: TextStyle(fontSize: 20.0, color: overuse ? Colors.purple : Colors.green),
+              )),
         ),
         Container(
           margin: EdgeInsets.symmetric(
             horizontal: MediaQuery.of(context).size.width * 0.355,
             vertical: MediaQuery.of(context).size.height * 0.135,
           ),
-          child: Text(
-            "${monthlyEmission.toInt().toString()} kg",
-            style: TextStyle(
-                fontSize: 22.0,
-                fontWeight: FontWeight.bold,
-                color: overuse ? Colors.purple : Colors.green),
-          ),
+          child: FittedBox(
+              fit: BoxFit.fitWidth,
+              child: Text(
+                "${monthlyEmission.toInt().toString()} kg",
+                style: TextStyle(
+                    fontSize: 22.0, fontWeight: FontWeight.w600, color: overuse ? Colors.purple : Colors.green),
+              )),
         ),
         Container(
           margin: EdgeInsets.symmetric(
@@ -138,10 +137,12 @@ class EmissionOverviewGaugeState extends State<EmissionOverviewGauge> {
           ),
           child: overuse
               ? Container()
-              : Text(
-                  "_______",
-                  style: TextStyle(fontSize: 24.0, color: Colors.green),
-                ),
+              : FittedBox(
+                  fit: BoxFit.fitWidth,
+                  child: Text(
+                    "_______",
+                    style: TextStyle(fontSize: 24.0, color: Colors.green),
+                  )),
         ),
         Container(
           padding: EdgeInsets.symmetric(
@@ -149,32 +150,35 @@ class EmissionOverviewGaugeState extends State<EmissionOverviewGauge> {
             vertical: MediaQuery.of(context).size.height * 0.170,
           ),
           child: overuse
-              ? Text("overuse",
-                  style: TextStyle(fontSize: 20.0, color: Colors.purple))
-              : Text(
-                  "${personalGoal.toInt().toString()} kg",
-                  style: TextStyle(fontSize: 22.0, color: Colors.green),
-                ),
+              ? FittedBox(
+                  fit: BoxFit.fitWidth, child: Text("overuse", style: TextStyle(fontSize: 20.0, color: Colors.purple)))
+              : FittedBox(
+                  fit: BoxFit.fitWidth,
+                  child: Text(
+                    "${personalGoal.toInt().toString()} kg",
+                    style: TextStyle(fontSize: 22.0, color: Colors.green),
+                  )),
         ),
-        GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () {
-            // Go to Compare screen
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      CompareEmissionWidget(personalGoal, monthlyEmission),
-                )).then((value) {
-              print("overview page got value: $value");
-              // setState(() {
-              //   _personalGoal = _prefs.then((SharedPreferences prefs) {
-              //     return prefs.getDouble('personalGoal');
-              //   });
-              // });
-            });
-          },
-        )
+        equivalent == true
+            ? Container()
+            : GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () {
+                  // Go to Compare screen
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CompareEmissionWidget(personalGoal, monthlyEmission),
+                      )).then((value) {
+                    print("overview page got value: $value");
+                    // setState(() {
+                    //   _personalGoal = _prefs.then((SharedPreferences prefs) {
+                    //     return prefs.getDouble('personalGoal');
+                    //   });
+                    // });
+                  });
+                },
+              )
       ],
     );
   }

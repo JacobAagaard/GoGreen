@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:gogreen/addReceipt/addReceiptWidget.dart';
 import 'package:gogreen/database/receiptDAO.dart';
 import 'package:gogreen/models/ReceiptModel.dart';
@@ -75,8 +76,9 @@ class OverviewWidgetState extends State<OverviewWidget> {
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
+              // So far in...
               Padding(
-                padding: const EdgeInsets.only(top: 10.0),
+                padding: const EdgeInsets.only(top: 30.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -91,6 +93,8 @@ class OverviewWidgetState extends State<OverviewWidget> {
                   ],
                 ),
               ),
+
+              // Gauge
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -108,10 +112,11 @@ class OverviewWidgetState extends State<OverviewWidget> {
                               return Text('Error: ${snapshot.error}');
                             } else {
                               if (snapshot.hasData && snapshot.data.emission != null) {
-                                return Center(
+                                return Container(
                                   child: EmissionOverviewGauge.withSampleData(
                                     personalGoal: snapshot.data.goal,
                                     monthlyEmission: snapshot.data.emission,
+                                    equivalent: false,
                                   ),
                                 );
                               } else {
@@ -124,15 +129,17 @@ class OverviewWidgetState extends State<OverviewWidget> {
                   ),
                 ],
               ),
+
+              // Wave and new receipt button
               new Stack(
+                alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   Container(
-                    height: 102,
-                    margin: EdgeInsets.only(top: 20.0),
-                    child: SvgPicture.asset("images/wave.svg"),
+                    margin: EdgeInsets.only(top: 30.0),
+                    child: SvgPicture.asset("images/wave.svg", fit: BoxFit.contain, width: screenWidth),
                   ),
                   Container(
-                    margin: EdgeInsets.only(top: 60.0),
+                    margin: EdgeInsets.only(bottom: 20.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
@@ -146,7 +153,7 @@ class OverviewWidgetState extends State<OverviewWidget> {
                             ),
                             child: Text(
                               "ADD NEW RECEIPT",
-                              style: TextStyle(color: Colors.green),
+                              style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
                             ),
                             onPressed: () {
                               // Go to Add receipt screen
@@ -164,18 +171,20 @@ class OverviewWidgetState extends State<OverviewWidget> {
                   ),
                 ],
               ),
+
+              // Timeline
+              Container(
+                  color: Color(0xFFE6F6E8),
+                  padding: EdgeInsets.only(left: 10, top: 10),
+                  alignment: Alignment.topLeft,
+                  child: Text("TIMELINE",
+                      style: TextStyle(color: Colors.purple, fontSize: 16, fontWeight: FontWeight.bold))),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.green.shade400, Colors.green.shade100],
-                          stops: [0.1, 0.7]),
-                    ),
-                    padding: EdgeInsets.only(top: 10.0, left: 10.0, bottom: 20.0),
+                    color: Color(0xFFE6F6E8),
+                    padding: EdgeInsets.only(left: 10.0, bottom: 20.0),
                     width: maxWidth + 2 * padding,
                     child: new FutureBuilder(
                       future: _fetchData(),
@@ -194,93 +203,92 @@ class OverviewWidgetState extends State<OverviewWidget> {
                                   List<Widget> imgWidgets = receipt.items.map((item) {
                                     Image img = new Image.asset("images/${item.foodType}.png");
                                     return Padding(
-                                      padding: const EdgeInsets.only(top: 6.0, right: 8.0),
+                                      padding: const EdgeInsets.only(top: 8.0, right: 8.0),
                                       child: new Image(image: img.image, width: 25),
                                     );
                                   }).toList();
 
-                                  Widget child = Padding(
-                                    padding: EdgeInsets.only(bottom: 8.0),
-                                    child: Row(
-                                      children: <Widget>[
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black45,
-                                                blurRadius: 1.0,
-                                                // has the effect of softening the shadow
-                                                spreadRadius: 1.0,
-                                                // has the effect of extending the shadow
-                                                offset: Offset(
-                                                  1.0,
-                                                  // horizontal, move right 1px
-                                                  1.0, // vertical, move down 1px
+                                  Widget child = Container(
+                                      margin: const EdgeInsets.only(top: 10.0, bottom: 5),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: <Widget>[
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black45,
+                                                  blurRadius: 1.0,
+                                                  // has the effect of softening the shadow
+                                                  spreadRadius: 1.0,
+                                                  // has the effect of extending the shadow
+                                                  offset: Offset(
+                                                    1.0,
+                                                    // horizontal, move right 1px
+                                                    1.0, // vertical, move down 1px
+                                                  ),
+                                                )
+                                              ],
+                                              color: Colors.green,
+                                            ),
+                                            child: IconButton(
+                                                icon: Icon(Icons.shopping_cart),
+                                                color: Colors.white,
+                                                iconSize: 24,
+                                                onPressed: () {
+                                                  // Go to Add receipt screen
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) => AddReceiptWidget(receipt),
+                                                    ),
+                                                  );
+                                                }),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.only(left: 15.0),
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.end,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: <Widget>[
+                                                Row(
+                                                  children: <Widget>[
+                                                    Text(
+                                                      "${DateFormat("dd/MM/yyyy - HH:mm").format(receipt.timestamp)}",
+                                                      style: TextStyle(
+                                                        fontSize: 15.0,
+                                                      ),
+                                                    ),
+                                                    Text(" | "),
+                                                    Text(
+                                                      "${receipt.totalEmission.round()}kg CO₂",
+                                                      style: TextStyle(
+                                                        color: Colors.purple,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 15.0,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                              )
-                                            ],
-                                            color: Colors.green,
+                                                Row(
+                                                  children: imgWidgets,
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                          padding: const EdgeInsets.all(6.0),
-                                          child: IconButton(
-                                              icon: Icon(Icons.shopping_cart),
-                                              color: Colors.white,
-                                              iconSize: 30,
-                                              onPressed: () {
-                                                // Go to Add receipt screen
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) => AddReceiptWidget(receipt),
-                                                  ),
-                                                );
-                                              }),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.only(left: 15.0, bottom: 10.0, top: 10.0),
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.end,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: <Widget>[
-                                              Row(
-                                                children: <Widget>[
-                                                  Text(
-                                                    "${DateFormat("dd/MM/yyyy - HH:mm").format(receipt.timestamp)}",
-                                                    style: TextStyle(
-                                                      fontSize: 15.0,
-                                                    ),
-                                                  ),
-                                                  Text(" | "),
-                                                  Text(
-                                                    "${receipt.totalEmission.round()}kg CO₂",
-                                                    style: TextStyle(
-                                                      color: Colors.purple,
-                                                      fontWeight: FontWeight.bold,
-                                                      fontSize: 15.0,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              Row(
-                                                children: imgWidgets,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
 
-                                        // Don't add the edit icon since editing is not supported right now
-                                        // Column(
-                                        //   // mainAxisAlignment: MainAxisAlignment.end,
-                                        //   crossAxisAlignment: CrossAxisAlignment.end,
-                                        //   children: <Widget>[
-                                        //     Icon(Icons.edit,
-                                        //         color: Colors.grey, size: 20)
-                                        //   ],
-                                        // ),
-                                      ],
-                                    ),
-                                  );
+                                          // Don't add the edit icon since editing is not supported right now
+                                          // Column(
+                                          //   // mainAxisAlignment: MainAxisAlignment.end,
+                                          //   crossAxisAlignment: CrossAxisAlignment.end,
+                                          //   children: <Widget>[
+                                          //     Icon(Icons.edit,
+                                          //         color: Colors.grey, size: 20)
+                                          //   ],
+                                          // ),
+                                        ],
+                                      ));
                                   return child;
                                 }).toList();
 
@@ -290,7 +298,7 @@ class OverviewWidgetState extends State<OverviewWidget> {
                                   Icon(
                                     Icons.shopping_cart,
                                     color: Colors.grey,
-                                    size: 40,
+                                    size: 30,
                                   ),
                                   Text(
                                     "No receipts to show yet...",

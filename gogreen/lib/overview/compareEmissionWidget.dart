@@ -4,17 +4,18 @@ import 'package:intl/intl.dart';
 
 class CompareEmissionWidget extends StatefulWidget {
   CompareEmissionWidget(this.personalGoal, this.monthlyEmission);
+
   final personalGoal;
   final monthlyEmission;
 
   @override
-  CompareEmissionWidgetState createState() =>
-      CompareEmissionWidgetState(personalGoal, monthlyEmission);
+  CompareEmissionWidgetState createState() => CompareEmissionWidgetState(personalGoal, monthlyEmission);
 }
 
 class CompareEmissionWidgetState extends State<CompareEmissionWidget> {
   double personalGoal;
   double monthlyEmission;
+
   CompareEmissionWidgetState(this.personalGoal, this.monthlyEmission);
 
   @override
@@ -64,21 +65,20 @@ class CompareEmissionWidgetState extends State<CompareEmissionWidget> {
                     child: EmissionOverviewGauge.withSampleData(
                       personalGoal: personalGoal,
                       monthlyEmission: monthlyEmission,
+                      equivalent: true
                     ),
                   ),
                 ),
               ],
             ),
-            Padding(
+            Container(
               padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    "Your monthly emissions ${extraUsage || equalUsage ? 'surplus equals' : 'savings equal'} to:",
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ],
+              child: FittedBox(
+                fit: BoxFit.fitWidth,
+                child: Text(
+                  "Your monthly emissions ${extraUsage || equalUsage ? 'surplus equals' : 'savings equal'} to:",
+                  style: TextStyle(fontSize: 18),
+                ),
               ),
             ),
             SingleChildScrollView(
@@ -86,18 +86,15 @@ class CompareEmissionWidgetState extends State<CompareEmissionWidget> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  getComparison(emissionsDiff, maxWidth, 3.2, "watching",
-                      "hours of Netflix", "images/netflix.jpg"),
+                  getComparison(emissionsDiff, maxWidth, 3.2, "watching", "hours of Netflix", "images/netflix.jpg"),
                   smallDiff
-                      ? getComparison(emissionsDiff, maxWidth, 0.75,
-                          "streaming music for", "hours", "images/spotify.jpg")
-                      : getComparison(emissionsDiff, maxWidth, 4.0, "driving",
-                          "km", "images/driving.jpg"),
+                      ? getComparison(
+                          emissionsDiff, maxWidth, 0.75, "streaming music for", "hours", "images/spotify.jpg")
+                      : getComparison(emissionsDiff, maxWidth, 4.0, "driving", "km", "images/driving.jpg"),
                   smallDiff
-                      ? getComparison(emissionsDiff, maxWidth, 0.0078,
-                          "charging your phone", "times", "images/charging.jpg")
-                      : getComparison(emissionsDiff, maxWidth, 50, "planting",
-                          "tree seedlings", "images/seedling.jpg"),
+                      ? getComparison(
+                          emissionsDiff, maxWidth, 0.0078, "charging your phone", "times", "images/charging.jpg")
+                      : getComparison(emissionsDiff, maxWidth, 50, "planting", "tree seedlings", "images/seedling.jpg"),
                 ],
               ),
             ),
@@ -108,8 +105,7 @@ class CompareEmissionWidgetState extends State<CompareEmissionWidget> {
   }
 }
 
-Widget getComparison(double emissionsDiff, double maxWidth, double factor,
-    String text1, String text2, String imgPath) {
+Widget getComparison(double emissionsDiff, double maxWidth, double factor, String text1, String text2, String imgPath) {
   return Padding(
     padding: const EdgeInsets.only(right: 8.0),
     child: Column(
@@ -118,32 +114,22 @@ Widget getComparison(double emissionsDiff, double maxWidth, double factor,
           width: maxWidth * 0.9,
           height: 150,
           decoration: BoxDecoration(
-            image: DecorationImage(
-                fit: BoxFit.fill, image: Image.asset(imgPath).image),
+            image: DecorationImage(fit: BoxFit.fill, image: Image.asset(imgPath).image),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
                 text1,
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold),
+                style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold),
               ),
               Text(
                 "${emissionsDiff ~/ factor}",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 50,
-                    fontWeight: FontWeight.bold),
+                style: TextStyle(color: Colors.white, fontSize: 50, fontWeight: FontWeight.bold),
               ),
               Text(
                 text2,
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold),
+                style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold),
               ),
             ],
           ),
