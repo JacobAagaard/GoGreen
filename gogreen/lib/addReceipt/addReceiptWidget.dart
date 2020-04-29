@@ -8,13 +8,33 @@ import 'package:gogreen/helper/constants.dart';
 import 'package:gogreen/helper/stringHelper.dart';
 
 class AddReceiptWidget extends StatefulWidget {
+  final Receipt receiptToEdit;
+
+  AddReceiptWidget([this.receiptToEdit]);
+
   @override
   AddReceiptWidgetState createState() => AddReceiptWidgetState();
 }
 
 class AddReceiptWidgetState extends State<AddReceiptWidget> {
-  Map<String, double> _amountMap = new Map();
-  Map<String, double> _emissionMap = new Map();
+  Map<String, double> _amountMap = new Map<String, double>();
+  Map<String, double> _emissionMap = new Map<String, double>();
+
+  Receipt receiptToEdit;
+
+  @override
+  void initState() {
+    receiptToEdit = widget.receiptToEdit;
+
+    if (receiptToEdit != null) {
+      receiptToEdit.items.forEach((ReceiptItem item) {
+        _amountMap[item.foodType] = item.quantity;
+        _emissionMap[item.foodType] = item.emission;
+      });
+    }
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,16 +43,23 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
         title: Text("Add new receipt"),
         actions: <Widget>[
           Builder(
-            builder: (context) => IconButton(
-              icon: Image.asset("images/receipt-scan.png"),
-              onPressed: () {
-                // Go to Settings screen
-                Scaffold.of(context).showSnackBar(SnackBar(
-                  content: Text("Scanning receipts coming soon!"),
-                ));
-              },
-            ),
-          )
+              builder: (context) => receiptToEdit == null
+                  ? IconButton(
+                      icon: Image.asset("images/receipt-scan.png"),
+                      onPressed: () {
+                        // Go to Settings screen
+                        Scaffold.of(context).showSnackBar(SnackBar(
+                          content: Text("Scanning receipts coming soon!"),
+                        ));
+                      },
+                    )
+                  : FlatButton(
+                      child: Text("Delete", style: TextStyle(color: Colors.white)),
+                      onPressed: () async {
+                        await deleteReceipt();
+                        Navigator.pop(context, null);
+                      },
+                    ))
         ],
       ),
       body: GridView.count(
@@ -52,27 +79,69 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
     );
   }
 
+  Future<Receipt> saveReceiptToDB(Map<String, double> amountMap, Map<String, double> emissionMap) async {
+    ReceiptDao _receiptDao = new ReceiptDao();
+
+    if (receiptToEdit == null) {
+      if (amountMap.isEmpty) return null;
+      List<ReceiptItem> itemList = new List();
+      double totalEmission = 0;
+      amountMap.forEach((key, value) {
+        if (value > 0) {
+          itemList.add(new ReceiptItem(foodType: key, quantity: value, emission: emissionMap[key]));
+          totalEmission += emissionMap[key];
+        }
+      });
+      Receipt receipt = new Receipt(timestamp: DateTime.now(), items: itemList, totalEmission: totalEmission);
+      int result = await _receiptDao.insertReceipt(receipt);
+      if (result != null)
+        return receipt;
+      else
+        return null;
+    } else {
+      if (amountMap.isEmpty) {
+        await deleteReceipt();
+        return null;
+      }
+
+      List<ReceiptItem> itemList = new List();
+      double totalEmission = 0;
+      amountMap.forEach((key, value) {
+        if (value > 0) {
+          itemList.add(new ReceiptItem(foodType: key, quantity: value, emission: emissionMap[key]));
+          totalEmission += emissionMap[key];
+        }
+      });
+      receiptToEdit.items = itemList;
+      receiptToEdit.totalEmission = totalEmission;
+      int result = await _receiptDao.updateReceipt(receiptToEdit);
+      if (result != null)
+        return receiptToEdit;
+      else
+        return null;
+    }
+  }
+
+  Future deleteReceipt() async {
+    ReceiptDao _receiptDao = new ReceiptDao();
+    await _receiptDao.delete(receiptToEdit);
+  }
+
   List<Widget> _createReceiptItems(context) {
     List<ReceiptItemType> data = new List();
     FOOD_PROPERTIES.forEach((key, item) {
-      data.add(new ReceiptItemType(
-          key, new Image.asset(item["image"]), item["unit"]));
+      data.add(new ReceiptItemType(key, new Image.asset(item["image"]), item["unit"]));
     });
 
     return List.generate(data.length, (index) {
       ReceiptItemType item = data[index];
       String label = item.label;
       Image img = item.img;
-      Color color = (_amountMap != null &&
-              _amountMap.containsKey(label) &&
-              _amountMap[label] > 0)
+      Color color = (_amountMap != null && _amountMap.containsKey(label) && _amountMap[label] > 0)
           ? Color(0xFFE8F6E6)
           : Color(0xFFF5E9F8);
-      Color textColor = (_amountMap != null &&
-              _amountMap.containsKey(label) &&
-              _amountMap[label] > 0)
-          ? Colors.green
-          : Colors.purple;
+      Color textColor =
+          (_amountMap != null && _amountMap.containsKey(label) && _amountMap[label] > 0) ? Colors.green : Colors.purple;
       double emission = new EmissionDataService().getEmissionForType(label);
       double factor = item.unit == "g" ? 1000.0 : 1.0;
       if (label == "eggs") {
@@ -97,21 +166,26 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
                     // Get the amount from the dialog, account for the unit by dividing with a factor
                     final double amount = await _getAmount(context, item);
                     if (amount == null) return;
-                    final double _emission = (amount * emission) / factor;
+                    final double amountEmission = (amount * emission) / factor;
                     setState(() {
-                      _amountMap.update(
-                        label,
-                        (cur) => cur + amount,
-                        ifAbsent: () => amount,
-                      );
-
-                      _emissionMap.update(
-                        label,
-                        (cur) => cur + _emission,
-                        ifAbsent: () => _emission,
-                      );
+                      if (_amountMap.containsKey(label)) {
+                        if (_amountMap[label] + amount > 0) {
+                          _amountMap[label] += amount;
+                          _emissionMap[label] += amountEmission;
+                          item.amount += amount;
+                        } else {
+                          _amountMap.remove(label);
+                          _emissionMap.remove(label);
+                          item.amount = 0;
+                        }
+                      } else {
+                        if (amount > 0) {
+                          _amountMap[label] = amount;
+                          _emissionMap[label] = amountEmission;
+                          item.amount = amount;
+                        }
+                      }
                     });
-                    item.amount = amount;
                     print("entered $amount of $label");
                   },
                 ),
@@ -129,26 +203,6 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
       );
     });
   }
-}
-
-Future<Receipt> saveReceiptToDB(Map<String, double> amountMap, Map<String, double> emissionMap) async {
-
-  if (amountMap.isEmpty) return null;
-
-  ReceiptDao _receiptDao = new ReceiptDao();
-  List<ReceiptItem> itemList = new List();
-  double totalEmission = 0;
-
-  amountMap.forEach((key, value){
-    itemList.add(new ReceiptItem(foodType: key, quantity: value, emission: emissionMap[key]));
-    totalEmission += emissionMap[key];
-  });
-
-  Receipt receipt = new Receipt(timestamp: DateTime.now(), items: itemList, totalEmission: totalEmission);
-
-  int result = await _receiptDao.insertReceipt(receipt);
-  if (result != null) return receipt;
-  else return null;
 }
 
 Future<double> _getAmount(context, ReceiptItemType item) async {

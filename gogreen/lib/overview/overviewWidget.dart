@@ -22,23 +22,23 @@ class OverviewWidgetState extends State<OverviewWidget> {
   ReceiptDao _receiptDao = ReceiptDao();
 
   Future<dynamic> _fetchData() async {
-      List<Receipt> receipts = await _receiptDao.getCurrentMonthReceipts();
-      double tempEmission = 0;
-      receipts.forEach((Receipt receipt) {
-        tempEmission += receipt.totalEmission;
-      });
+    List<Receipt> receipts = await _receiptDao.getCurrentMonthReceipts();
+    double tempEmission = 0;
+    receipts.forEach((Receipt receipt) {
+      tempEmission += receipt.totalEmission;
+    });
 
-      SharedPreferences prefs = await _prefs;
-      double storedPersonalGoal = 0.0;
-      storedPersonalGoal = prefs.getDouble('personalGoal');
-      if (storedPersonalGoal == null) {
-        // Handle launching the app, if getting monthlyEmission above throws exception
-        double initialGoal = 580.0;
-        prefs.setDouble("personalGoal", initialGoal).then((bool success) {
-          success ? print("Personal Goal initialized to $initialGoal") : print("Personal Goal is unset");
-        });
-      }
-      return new Merged(goal: storedPersonalGoal, emission: tempEmission, receipts: receipts);
+    SharedPreferences prefs = await _prefs;
+    double storedPersonalGoal = 0.0;
+    storedPersonalGoal = prefs.getDouble('personalGoal');
+    if (storedPersonalGoal == null) {
+      // Handle launching the app, if getting monthlyEmission above throws exception
+      double initialGoal = 580.0;
+      prefs.setDouble("personalGoal", initialGoal).then((bool success) {
+        success ? print("Personal Goal initialized to $initialGoal") : print("Personal Goal is unset");
+      });
+    }
+    return new Merged(goal: storedPersonalGoal, emission: tempEmission, receipts: receipts);
   }
 
   @override
@@ -223,11 +223,19 @@ class OverviewWidgetState extends State<OverviewWidget> {
                                             color: Colors.green,
                                           ),
                                           padding: const EdgeInsets.all(6.0),
-                                          child: Icon(
-                                            Icons.shopping_cart,
-                                            color: Colors.white,
-                                            size: 30,
-                                          ),
+                                          child: IconButton(
+                                              icon: Icon(Icons.shopping_cart),
+                                              color: Colors.white,
+                                              iconSize: 30,
+                                              onPressed: () {
+                                                // Go to Add receipt screen
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => AddReceiptWidget(receipt),
+                                                  ),
+                                                );
+                                              }),
                                         ),
                                         Padding(
                                           padding: const EdgeInsets.only(left: 15.0, bottom: 10.0, top: 10.0),

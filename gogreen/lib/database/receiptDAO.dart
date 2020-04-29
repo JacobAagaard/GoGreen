@@ -25,7 +25,12 @@ class ReceiptDao {
 
   Future updateReceipt(Receipt receipt) async {
     final finder = Finder(filter: Filter.byKey(receipt.id));
-    await _receiptFolder.update(await _db, receipt.toMap(), finder: finder);
+    int result = await _receiptFolder.update(await _db, receipt.toMap(), finder: finder);
+    if (result != null) {
+      print('Receipt updated successfully !!');
+      return result;
+    } else return null;
+
   }
 
   Future delete(Receipt receipt) async {
