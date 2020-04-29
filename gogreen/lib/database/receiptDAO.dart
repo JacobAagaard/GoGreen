@@ -9,9 +9,12 @@ class ReceiptDao {
 
   Future<Database> get _db async => await AppDatabase.instance.database;
 
-  Future insertReceipt(Receipt receipt) async {
-    await _receiptFolder.add(await _db, receipt.toMap());
-    print('Receipt Inserted successfully !!');
+  Future<int> insertReceipt(Receipt receipt) async {
+    int result = await _receiptFolder.add(await _db, receipt.toMap());
+    if (result != null) {
+      print('Receipt Inserted successfully !!');
+      return result;
+    } else return null;
   }
 
   Future insertFakeReceipt() async {

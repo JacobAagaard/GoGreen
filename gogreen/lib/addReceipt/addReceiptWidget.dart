@@ -29,9 +29,9 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
         children: _createReceiptItems(context),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          saveReceiptToDB(_amountMap, _emissionMap);
-          Navigator.pop(context, _emissionMap);
+        onPressed: () async {
+          Receipt newReceipt = await saveReceiptToDB(_amountMap, _emissionMap);
+          Navigator.pop(context, newReceipt);
         },
         tooltip: 'Confirm',
         child: const Icon(Icons.check),
@@ -115,9 +115,9 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
   }
 }
 
-void saveReceiptToDB(Map<String, double> amountMap, Map<String, double> emissionMap) {
+Future<Receipt> saveReceiptToDB(Map<String, double> amountMap, Map<String, double> emissionMap) async {
 
-  if (amountMap.isEmpty) return;
+  if (amountMap.isEmpty) return null;
 
   ReceiptDao _receiptDao = new ReceiptDao();
   List<ReceiptItem> itemList = new List();
@@ -128,7 +128,11 @@ void saveReceiptToDB(Map<String, double> amountMap, Map<String, double> emission
     totalEmission += emissionMap[key];
   });
 
-  _receiptDao.insertReceipt(new Receipt(timestamp: DateTime.now(), items: itemList, totalEmission: totalEmission));
+  Receipt receipt = new Receipt(timestamp: DateTime.now(), items: itemList, totalEmission: totalEmission);
+
+  int result = await _receiptDao.insertReceipt(receipt);
+  if (result != null) return receipt;
+  else return null;
 }
 
 
