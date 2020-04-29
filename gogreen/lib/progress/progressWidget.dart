@@ -165,73 +165,77 @@ class _ProgressWidgetState extends State<ProgressWidget> {
     }
 
     return Scaffold(
-        appBar: AppBar(
-          title: Text("Progress"),
+      appBar: AppBar(
+        title: Text("Progress"),
+      ),
+      body: Container(
+        padding: EdgeInsets.all(20),
+        child: new FutureBuilder<dynamic>(
+          future: _fetchData(),
+          // a previously-obtained Future<String> or null
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            List<Widget> children;
+
+            if (snapshot.hasData && snapshot.data.length > 0) {
+              processRawData(snapshot.data);
+
+              children = <Widget>[
+                Expanded(
+                    child: Container(
+                        width: screenWidth,
+                        child: new StackedAreaLineChart(monthEmissionSeries,
+                            animate: firstRendering))),
+                Container(
+                    padding: const EdgeInsets.only(top: 30.0, bottom: 10),
+                    child: Text("What if you changed your diet?",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w500))),
+                Wrap(
+                  spacing: 8.0, // gap between adjacent chips
+                  runSpacing: 4.0, // gap between lines
+                  children: [
+                    whatIfChip(WhatIf.vegetarian),
+                    whatIfChip(WhatIf.vegan),
+                  ],
+                ),
+              ];
+            } else if (snapshot.hasData && snapshot.data.length == 0) {
+              children = <Widget>[Text("Add a receipt to see progress")];
+            } else if (snapshot.hasError) {
+              children = <Widget>[
+                Icon(
+                  Icons.error_outline,
+                  color: Colors.red,
+                  size: 60,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Text('Error: ${snapshot.error}'),
+                )
+              ];
+            } else {
+              children = <Widget>[
+                SizedBox(
+                  child: CircularProgressIndicator(),
+                  width: 60,
+                  height: 60,
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 16),
+                  child: Text('Awaiting result...'),
+                )
+              ];
+            }
+            return Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: children,
+              ),
+            );
+          },
         ),
-        body: Container(
-            padding: EdgeInsets.all(20),
-            child: new FutureBuilder<dynamic>(
-              future: _fetchData(),
-              // a previously-obtained Future<String> or null
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                List<Widget> children;
-
-                if (snapshot.hasData && snapshot.data.length > 0) {
-                  processRawData(snapshot.data);
-
-                  children = <Widget>[
-                    Expanded(
-                        child: Container(
-                            width: screenWidth,
-                            child: new StackedAreaLineChart(monthEmissionSeries,
-                                animate: firstRendering))),
-                    Container(
-                        padding: const EdgeInsets.only(top: 30.0, bottom: 10),
-                        child: Text("What if you changed your diet?", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500))),
-                    Wrap(
-                      spacing: 8.0, // gap between adjacent chips
-                      runSpacing: 4.0, // gap between lines
-                      children: [
-                        whatIfChip(WhatIf.vegetarian),
-                        whatIfChip(WhatIf.vegan),
-                      ],
-                    ),
-                  ];
-                } else if (snapshot.hasData && snapshot.data.length == 0) {
-                  children = <Widget>[Text("No data available yet")];
-                } else if (snapshot.hasError) {
-                  children = <Widget>[
-                    Icon(
-                      Icons.error_outline,
-                      color: Colors.red,
-                      size: 60,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: Text('Error: ${snapshot.error}'),
-                    )
-                  ];
-                } else {
-                  children = <Widget>[
-                    SizedBox(
-                      child: CircularProgressIndicator(),
-                      width: 60,
-                      height: 60,
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(top: 16),
-                      child: Text('Awaiting result...'),
-                    )
-                  ];
-                }
-                return Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: children,
-                  ),
-                );
-              },
-            )));
+      ),
+    );
   }
 }
 
@@ -247,4 +251,4 @@ class MonthEmission {
   }
 }
 
-enum WhatIf { vegetarian, vegan}
+enum WhatIf { vegetarian, vegan }
