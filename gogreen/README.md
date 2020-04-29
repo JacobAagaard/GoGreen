@@ -20,3 +20,9 @@ samples, guidance on mobile development, and a full API reference.
 
 In this folder, run:
 `flutter build apk && flutter install -d all`
+
+
+## Acknowledgements
+
+GHG Emissions are extracted from [OurWorldInData](https://ourworldindata.org/food-choice-vs-eating-local)
+Icons in this app are from [Flaticon](www.flaticon.com)
