@@ -67,14 +67,14 @@ class ReceiptDao {
   }
 }
 
-final fakeBeef = new ReceiptItem(emission: 40, quantity: 1, foodType: "beef");
+final fakeBeef = new ReceiptItem(emission: 40, quantity: 1000, foodType: "beef");
 final fakeVegetables =
     new ReceiptItem(emission: 1, quantity: 2, foodType: "vegetables");
 final fakeChicken =
-    new ReceiptItem(emission: 5, quantity: 1, foodType: "chicken");
+    new ReceiptItem(emission: 5, quantity: 1000, foodType: "chicken");
 final fakeRice = new ReceiptItem(emission: 4, quantity: 1, foodType: "rice");
 final fakeCoffee =
-    new ReceiptItem(emission: 16, quantity: 1, foodType: "coffee");
+    new ReceiptItem(emission: 16, quantity: 1000, foodType: "coffee");
 final fakeMilk = new ReceiptItem(emission: 3, quantity: 1, foodType: "milk");
 
 final fakeData = [

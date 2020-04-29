@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gogreen/database/receiptDAO.dart';
+import 'package:gogreen/emissionData/emissionDataService.dart';
 import 'package:gogreen/helper/enumHelper.dart';
 import 'package:gogreen/helper/stringHelper.dart';
 import 'package:gogreen/models/ReceiptModel.dart';
@@ -124,16 +125,73 @@ class _ProgressWidgetState extends State<ProgressWidget> {
     }
   }
 
+  replaceFoodType(Map<String, String> foodReplacement) {
+    bool firstIter = true;
+    modifiedMonthEmission = null;
+    EmissionDataService _emissionService = new EmissionDataService();
+    monthData.forEach((date, receiptList) {
+
+      double totalEmission = 0;
+
+      for (Receipt receipt in receiptList) {
+        receipt.items.forEach((item) {
+          if (!foodReplacement.containsKey(item.foodType)) {
+            totalEmission += item.emission;
+          } else {
+            totalEmission += _emissionService.getEmissionForType(foodReplacement[item.foodType]) * item.quantity;
+          }
+        });
+      }
+
+      MonthEmission temp = new MonthEmission(date, totalEmission);
+
+      if (firstIter == true) {
+        modifiedMonthEmission = [temp];
+        firstIter = false;
+      } else
+        modifiedMonthEmission.add(temp);
+    });
+
+    if (monthEmissionSeries.length == 1) {
+      monthEmissionSeries.add(new charts.Series<MonthEmission, DateTime>(
+        id: 'modifiedEmission',
+        colorFn: (_, __) => charts.MaterialPalette.purple.shadeDefault,
+        domainFn: (MonthEmission item, _) => item.month,
+        measureFn: (MonthEmission item, _) => item.emission,
+        data: modifiedMonthEmission,
+      ));
+    } else {
+      monthEmissionSeries[1] = new charts.Series<MonthEmission, DateTime>(
+        id: 'modifiedEmission',
+        colorFn: (_, __) => charts.MaterialPalette.purple.shadeDefault,
+        domainFn: (MonthEmission item, _) => item.month,
+        measureFn: (MonthEmission item, _) => item.emission,
+        data: modifiedMonthEmission,
+      );
+    }
+  }
+
+
   void modifyData(WhatIf whatIf) {
     firstRendering = false;
     switch (whatIf) {
       case WhatIf.vegetarian:
-        removeFoodType(["beef", "chicken", "fish"]);
+        replaceFoodType({"beef": "plant-meat", "chicken": "plant-meat", "fish": "plant-meat", "lamb": "plant-meat"});
         break;
 
       case WhatIf.vegan:
-        removeFoodType(["beef", "chicken", "fish", "egg", "milk"]);
+        removeFoodType(["eggs", "cheese"]);
+        replaceFoodType({"beef": "plant-meat", "chicken": "plant-meat", "fish": "plant-meat", "lamb": "plant-meat", "milk": "plant-milk"});
         break;
+
+      case WhatIf.nobeef:
+        replaceFoodType({"beef": "chicken"});
+        break;
+
+      case WhatIf.pescitarian:
+        replaceFoodType({"beef": "fish", "chicken": "fish"});
+        break;
+
 
       default:
         if (monthEmissionSeries.length > 1) monthEmissionSeries.removeLast();
@@ -196,6 +254,8 @@ class _ProgressWidgetState extends State<ProgressWidget> {
                   children: [
                     whatIfChip(WhatIf.vegetarian),
                     whatIfChip(WhatIf.vegan),
+                    whatIfChip(WhatIf.pescitarian),
+                    whatIfChip(WhatIf.nobeef),
                   ],
                 ),
               ];
@@ -251,4 +311,4 @@ class MonthEmission {
   }
 }
 
-enum WhatIf { vegetarian, vegan }
+enum WhatIf { vegetarian, vegan, nobeef, pescitarian}
