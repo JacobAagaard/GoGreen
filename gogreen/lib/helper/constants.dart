@@ -5,6 +5,7 @@ const Map<String, dynamic> FOOD_PROPERTIES = {
   "plant-milk": {"image": "images/plant-milk.png", "unit": "L"},
   "cheese": {"image": "images/cheese.png", "unit": "g"},
   "beef": {"image": "images/beef.png", "unit": "g"},
+  "plant-meat": {"image": "images/plant-meat.png", "unit": "g"},
   "pork": {"image": "images/pork.png", "unit": "g"},
   "lamb": {"image": "images/lamb.png", "unit": "g"},
   "eggs": {"image": "images/eggs.png", "unit": "pcs"}, // 1pc ~ 50g
@@ -17,5 +18,6 @@ const Map<String, dynamic> FOOD_PROPERTIES = {
   "pasta": {"image": "images/pasta.png", "unit": "kg"},
   "rice": {"image": "images/rice.png", "unit": "kg"},
   "coffee": {"image": "images/coffee.png", "unit": "g"},
+  "tea": {"image": "images/tea.png", "unit": "g"},
   "chocolate": {"image": "images/chocolate.png", "unit": "g"},
 };
