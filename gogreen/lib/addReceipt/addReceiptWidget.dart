@@ -40,26 +40,29 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Add new receipt"),
+        title: Text(receiptToEdit == null ? "Add new receipt" : "Edit receipt"),
         actions: <Widget>[
           Builder(
-              builder: (context) => receiptToEdit == null
-                  ? IconButton(
-                      icon: Image.asset("images/receipt-scan.png"),
-                      onPressed: () {
-                        // Go to Settings screen
-                        Scaffold.of(context).showSnackBar(SnackBar(
+            builder: (context) => receiptToEdit == null
+                ? IconButton(
+                    icon: Image.asset("images/receipt-scan.png"),
+                    onPressed: () {
+                      // Go to Settings screen
+                      Scaffold.of(context).showSnackBar(
+                        SnackBar(
                           content: Text("Scanning receipts coming soon!"),
-                        ));
-                      },
-                    )
-                  : FlatButton(
-                      child: Text("Delete", style: TextStyle(color: Colors.white)),
-                      onPressed: () async {
-                        await deleteReceipt();
-                        Navigator.pop(context, null);
-                      },
-                    ))
+                        ),
+                      );
+                    },
+                  )
+                : IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () async {
+                      await deleteReceipt();
+                      Navigator.pop(context, null);
+                    },
+                  ),
+          )
         ],
       ),
       body: GridView.count(
@@ -79,7 +82,8 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
     );
   }
 
-  Future<Receipt> saveReceiptToDB(Map<String, double> amountMap, Map<String, double> emissionMap) async {
+  Future<Receipt> saveReceiptToDB(
+      Map<String, double> amountMap, Map<String, double> emissionMap) async {
     ReceiptDao _receiptDao = new ReceiptDao();
 
     if (receiptToEdit == null) {
@@ -88,11 +92,15 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
       double totalEmission = 0;
       amountMap.forEach((key, value) {
         if (value > 0) {
-          itemList.add(new ReceiptItem(foodType: key, quantity: value, emission: emissionMap[key]));
+          itemList.add(new ReceiptItem(
+              foodType: key, quantity: value, emission: emissionMap[key]));
           totalEmission += emissionMap[key];
         }
       });
-      Receipt receipt = new Receipt(timestamp: DateTime.now(), items: itemList, totalEmission: totalEmission);
+      Receipt receipt = new Receipt(
+          timestamp: DateTime.now(),
+          items: itemList,
+          totalEmission: totalEmission);
       int result = await _receiptDao.insertReceipt(receipt);
       if (result != null)
         return receipt;
@@ -108,7 +116,8 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
       double totalEmission = 0;
       amountMap.forEach((key, value) {
         if (value > 0) {
-          itemList.add(new ReceiptItem(foodType: key, quantity: value, emission: emissionMap[key]));
+          itemList.add(new ReceiptItem(
+              foodType: key, quantity: value, emission: emissionMap[key]));
           totalEmission += emissionMap[key];
         }
       });
@@ -130,18 +139,24 @@ class AddReceiptWidgetState extends State<AddReceiptWidget> {
   List<Widget> _createReceiptItems(context) {
     List<ReceiptItemType> data = new List();
     FOOD_PROPERTIES.forEach((key, item) {
-      data.add(new ReceiptItemType(key, new Image.asset(item["image"]), item["unit"]));
+      data.add(new ReceiptItemType(
+          key, new Image.asset(item["image"]), item["unit"]));
     });
 
     return List.generate(data.length, (index) {
       ReceiptItemType item = data[index];
       String label = item.label;
       Image img = item.img;
-      Color color = (_amountMap != null && _amountMap.containsKey(label) && _amountMap[label] > 0)
+      Color color = (_amountMap != null &&
+              _amountMap.containsKey(label) &&
+              _amountMap[label] > 0)
           ? Color(0xFFE8F6E6)
           : Color(0xFFF5E9F8);
-      Color textColor =
-          (_amountMap != null && _amountMap.containsKey(label) && _amountMap[label] > 0) ? Colors.green : Colors.purple;
+      Color textColor = (_amountMap != null &&
+              _amountMap.containsKey(label) &&
+              _amountMap[label] > 0)
+          ? Colors.green
+          : Colors.purple;
       double emission = new EmissionDataService().getEmissionForType(label);
       double factor = item.unit == "g" ? 1000.0 : 1.0;
       if (label == "eggs") {

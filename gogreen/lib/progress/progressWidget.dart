@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gogreen/database/receiptDAO.dart';
 import 'package:gogreen/emissionData/emissionDataService.dart';
+import 'package:gogreen/helper/constants.dart';
 import 'package:gogreen/helper/enumHelper.dart';
 import 'package:gogreen/helper/stringHelper.dart';
 import 'package:gogreen/models/ReceiptModel.dart';
@@ -130,7 +131,6 @@ class _ProgressWidgetState extends State<ProgressWidget> {
     modifiedMonthEmission = null;
     EmissionDataService _emissionService = new EmissionDataService();
     monthData.forEach((date, receiptList) {
-
       double totalEmission = 0;
 
       for (Receipt receipt in receiptList) {
@@ -138,7 +138,21 @@ class _ProgressWidgetState extends State<ProgressWidget> {
           if (!foodReplacement.containsKey(item.foodType)) {
             totalEmission += item.emission;
           } else {
-            totalEmission += _emissionService.getEmissionForType(foodReplacement[item.foodType]) * item.quantity;
+            String unit = FOOD_PROPERTIES.entries
+                .firstWhere((entry) => entry.key == item.foodType)
+                .value["unit"];
+            double quantity = item.quantity;
+
+            if (unit == "g") {
+              quantity = quantity / 1000;
+            } else if (item.foodType == "eggs") {
+              quantity = quantity / 20;
+            }
+
+            double replacementEmission = _emissionService
+                .getEmissionForType(foodReplacement[item.foodType]);
+
+            totalEmission = replacementEmission * quantity;
           }
         });
       }
@@ -171,27 +185,42 @@ class _ProgressWidgetState extends State<ProgressWidget> {
     }
   }
 
-
   void modifyData(WhatIf whatIf) {
     firstRendering = false;
     switch (whatIf) {
       case WhatIf.vegetarian:
-        replaceFoodType({"beef": "plant-meat", "chicken": "plant-meat", "fish": "plant-meat", "lamb": "plant-meat"});
+        replaceFoodType({
+          "beef": "plant-meat",
+          "chicken": "plant-meat",
+          "fish": "plant-meat",
+          "lamb": "plant-meat"
+        });
         break;
 
       case WhatIf.vegan:
-        removeFoodType(["eggs", "cheese"]);
-        replaceFoodType({"beef": "plant-meat", "chicken": "plant-meat", "fish": "plant-meat", "lamb": "plant-meat", "milk": "plant-milk"});
+        replaceFoodType({
+          "beef": "tofu",
+          "chicken": "tofu",
+          "fish": "tofu",
+          "lamb": "tofu",
+          "milk": "plant-milk",
+          "cheese": "tofu",
+          "eggs": "tofu",
+        });
         break;
 
       case WhatIf.nobeef:
-        replaceFoodType({"beef": "chicken"});
+        removeFoodType(["beef"]);
         break;
 
       case WhatIf.pescitarian:
-        replaceFoodType({"beef": "fish", "chicken": "fish"});
+        replaceFoodType({
+          "beef": "fish",
+          "chicken": "fish",
+          "lamb": "fish",
+          "pork": "fish"
+        });
         break;
-
 
       default:
         if (monthEmissionSeries.length > 1) monthEmissionSeries.removeLast();
@@ -311,4 +340,4 @@ class MonthEmission {
   }
 }
 
-enum WhatIf { vegetarian, vegan, nobeef, pescitarian}
+enum WhatIf { vegetarian, vegan, nobeef, pescitarian }
